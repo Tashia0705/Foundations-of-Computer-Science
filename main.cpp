@@ -32,7 +32,7 @@ DFA<int> task7(int ch) {
         0,
         [=](int qi, int c) { if(c == ch && qi == 0) return 1; else return 2; },
         [](int qi) { return qi == 1; } );
-    return z;
+    return *z;
 }
 
 
