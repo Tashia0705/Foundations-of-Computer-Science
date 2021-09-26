@@ -20,6 +20,32 @@ class DFA {
     State q0;
     std::function<State(State, int)> D;
     std::function<bool (State)> F;
+    std::vector<State> traceStates;
+    
+    /*
+     Task 10.
+     Write a function that given a DFA and a string, determines if the string is accepted.
+    */
+    bool accepts(DFA d, std::vector<int> w) {
+        State qi = q0;
+        traceStates.clear();
+        traceStates.push_back(qi);
+        for(int i = 0; i < w.size(); i++) {
+            qi = D(qi, w[i]);
+            traceStates.push_back(qi);
+        }
+        
+        if(F(qi))
+            std::cout << "Accepted" << std::endl;
+        else
+            std::cout << "Denied" << std::endl;
+        
+        for(int i = 0; i < traceStates.size(); i++) // trace states
+            std::cout << "-> " << traceStates[i] << " ";
+        std::cout << std::endl;
+        return F(qi);
+    }
+    
     
 };
 
@@ -58,9 +84,8 @@ int main(int argc, const char * argv[]) {
         std::vector<int> result;
         lexi(set, j, result);
     
-        for(int i = 0; i < result.size(); i++) {
+        for(int i = 0; i < result.size(); i++)
             std::cout << result[i];
-        }
         std::cout << std::endl;
     }
     
@@ -96,15 +121,9 @@ int main(int argc, const char * argv[]) {
     DFA<int> *binary = new DFA<int>(
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) {
-            while(c > 0) {
-                int result = c % 10;
-                if(result > 1) return 1;
-                c /= 10;
-            } return 0; },
+        [](int qi, int c){ if(c == 0 || c == 1) return 0; else return 1;},
         [](int qi) { return qi == 0; }
         );
-    std::cout << binary->D(0, 987) << std::endl;
     
     // b. DFA that only accepts even binary nums
     DFA<int> *evenBinary = new DFA<int> (
@@ -113,7 +132,6 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if((c ^ 1) == c + 1) return 0; else return 1; },
         [](int qi) { return qi == 0; }
         );
-    std::cout << evenBinary->D(0, 01) << std::endl;
     
     // c. DFA that only accepts odd binary nums
     DFA<int> *oddBinary = new DFA<int> (
@@ -122,7 +140,6 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if((c ^ 1) == c + 1) return 1; else return 0; },
         [](int qi) { return qi == 0; }
         );
-    std::cout << oddBinary->D(0, 01) << std::endl;
     
     // d. DFA that only accepts even numbers
     DFA<int> *evenNum = new DFA<int> (
@@ -131,7 +148,6 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if (c % 2 != 0) return 1; else return 0;},
         [](int qi) { return qi == 0; }
         );
-    std::cout << evenNum->D(0, 246) << std::endl;
     
     // e. DFA that only accepts odd numbers
     DFA<int> *oddNum = new DFA<int> (
@@ -140,7 +156,6 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if (c % 2 != 0) return 0; else return 1;},
         [](int qi) { return qi == 0; }
         );
-    std::cout << oddNum->D(0, 241) << std::endl;
     
     // f. DFA that only accepts numbers divisible by 6
     DFA<int> *sixDiv = new DFA<int> (
@@ -149,7 +164,6 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if(c % 6 != 0) return 1; else return 0; },
         [](int qi) { return qi == 0; }
         );
-    std::cout << sixDiv->D(0, 71) << std::endl;
     
     // g. DFA that only accepts evenly long strings
     DFA<int> *evenLength = new DFA<int> (
@@ -158,7 +172,6 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if (qi == 1) return 1; else return 0;},
         [](int qi) { return qi == 0; }
         );
-    std::cout << evenLength->D(0, 2) << std::endl;
     
     // h. DFA that only accepts strings of odd lengths
     DFA<int> *oddLength = new DFA<int> (
@@ -167,7 +180,6 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if (qi == 0) return 0; else return 1;},
         [](int qi) { return qi == 1; }
         );
-    std::cout << oddLength->D(1, 2) << std::endl;
     
     // i. DFA that only accepts strings made of 0s
     DFA<int> *zeros= new DFA<int> (
@@ -176,7 +188,6 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if (c == 0) return 0; else return 1;},
         [](int qi) { return qi == 0; }
         );
-    std::cout << zeros->D(0, 2) << std::endl;
     
     // j. DFA that only accepts strings made of 1s
     DFA<int> *ones= new DFA<int> (
@@ -185,9 +196,30 @@ int main(int argc, const char * argv[]) {
         [](int qi, int c) { if (c == 1) return 0; else return 1;},
         [](int qi) { return qi == 0; }
         );
-    std::cout << ones->D(0, 2) << std::endl;
     
+    // k. DFA that only accepts even number of 0s
+    DFA<int> *evenZeros= new DFA<int> (
+        [](int x) { return (x == 0) || (x == 1); },
+        0,
+        [](int qi, int c) { if (c == 0 && qi != 1) return 0; else return 1;},
+        [](int qi) { return qi == 0; }
+        );
     
+    // l. DFA that only accepts odd number of 1s
+    DFA<int> *oddOnes= new DFA<int> (
+        [](int x) { return (x == 0) || (x == 1); },
+        0,
+        [](int qi, int c) { if (c == 1 && qi != 0) return 1; else return 0;},
+        [](int qi) { return qi == 1; }
+        );
+    /*
+     Task 9.
+     For each example DFA, write a dozen tests of their behavior
+    */
+    std::cout << "DFA 1: Tesing rejected strings:" << std::endl;
+    for(int i = 0; i < 6; i++)
+        binary->accepts(*binary, {i,i+1,i+2});
+
     return 0;
 }
     
