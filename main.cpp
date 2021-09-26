@@ -115,7 +115,16 @@ int main(int argc, const char * argv[]) {
         );
     std::cout << evenBinary->D(0, 01) << std::endl;
     
-    // c. DFA that only accepts even numbers
+    // c. DFA that only accepts odd binary nums
+    DFA<int> *oddBinary = new DFA<int> (
+        [](int x) { return (x == 0) || (x == 1); },
+        0,
+        [](int qi, int c) { if((c ^ 1) == c + 1) return 1; else return 0; },
+        [](int qi) { return qi == 0; }
+        );
+    std::cout << oddBinary->D(0, 01) << std::endl;
+    
+    // d. DFA that only accepts even numbers
     DFA<int> *evenNum = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
@@ -124,7 +133,7 @@ int main(int argc, const char * argv[]) {
         );
     std::cout << evenNum->D(0, 246) << std::endl;
     
-    // d. DFA that only accepts odd numbers
+    // e. DFA that only accepts odd numbers
     DFA<int> *oddNum = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
@@ -133,7 +142,7 @@ int main(int argc, const char * argv[]) {
         );
     std::cout << oddNum->D(0, 241) << std::endl;
     
-    // e. DFA that only accepts numbers divisible by 6
+    // f. DFA that only accepts numbers divisible by 6
     DFA<int> *sixDiv = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
@@ -142,25 +151,42 @@ int main(int argc, const char * argv[]) {
         );
     std::cout << sixDiv->D(0, 71) << std::endl;
     
-    // f. DFA that only accepts evenly long strings
+    // g. DFA that only accepts evenly long strings
     DFA<int> *evenLength = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
         [](int qi, int c) { if (qi == 1) return 1; else return 0;},
         [](int qi) { return qi == 0; }
         );
-    std::cout << "Length: " << evenLength->D(0, 2) << std::endl;
+    std::cout << evenLength->D(0, 2) << std::endl;
     
-    // g. DFA that only accepts strings of odd lengths
+    // h. DFA that only accepts strings of odd lengths
     DFA<int> *oddLength = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
         [](int qi, int c) { if (qi == 0) return 0; else return 1;},
         [](int qi) { return qi == 1; }
         );
-    std::cout << "Length: " << oddLength->D(0, 2) << std::endl;
+    std::cout << oddLength->D(1, 2) << std::endl;
     
-    // h. DFA 
+    // i. DFA that only accepts strings made of 0s
+    DFA<int> *zeros= new DFA<int> (
+        [](int x) { return (x == 0) || (x == 1); },
+        0,
+        [](int qi, int c) { if (c == 0) return 0; else return 1;},
+        [](int qi) { return qi == 0; }
+        );
+    std::cout << zeros->D(0, 2) << std::endl;
+    
+    // j. DFA that only accepts strings made of 1s
+    DFA<int> *ones= new DFA<int> (
+        [](int x) { return (x == 0) || (x == 1); },
+        0,
+        [](int qi, int c) { if (c == 1) return 0; else return 1;},
+        [](int qi) { return qi == 0; }
+        );
+    std::cout << ones->D(0, 2) << std::endl;
+    
     
     return 0;
 }
@@ -201,5 +227,4 @@ std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result) {
 
     return result;
 }
-
 
