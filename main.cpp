@@ -38,7 +38,7 @@ class DFA {
         if(F(qi))
             std::cout << "Accepted" << std::endl;
         else
-            std::cout << "Denied" << std::endl;
+            std::cout << "Rejected" << std::endl;
         
         for(int i = 0; i < traceStates.size(); i++) // trace states
             std::cout << "-> " << traceStates[i] << " ";
@@ -49,19 +49,6 @@ class DFA {
     
 };
 
-/*
- Task 7.
- DFA that accepts only strings of exactly that character
-*/
-DFA<int> task7(int ch) {
-    DFA<int> *z = new DFA<int>(
-        [](int x) { return (x == 0) || (x == 1) || (x == 2); },
-        0,
-        [=](int qi, int c) { if(c == ch && qi == 0) return 1; else return 2; },
-        [](int qi) { return qi == 1; } );
-    return *z;
-}
-
 int main(int argc, const char * argv[]) {
     /*
      Task 1.
@@ -70,7 +57,7 @@ int main(int argc, const char * argv[]) {
      be using integers. ex. {0,1} is an alphabet
     */
     std::vector<int> set;
-    for(int i = 0; i <= 9; i++) {
+    for(int i = 0; i <= 5; i++) {
         set.push_back(i);
     }
     
@@ -80,7 +67,7 @@ int main(int argc, const char * argv[]) {
      from an alphabet."
      ex. {1,0,1} is a sequence taken from the alphabet {0,1}
     */
-    for(int j = 0; j < 30; j++) {
+    for(int j = 0; j < 20; j++) {
         std::vector<int> result;
         lexi(set, j, result);
     
@@ -157,11 +144,11 @@ int main(int argc, const char * argv[]) {
         [](int qi) { return qi == 0; }
         );
     
-    // f. DFA that only accepts numbers divisible by 6
-    DFA<int> *sixDiv = new DFA<int> (
+    // f. DFA that only accepts numbers ending in 5
+    DFA<int> *five = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) { if(c % 6 != 0) return 1; else return 0; },
+        [](int qi, int c) { if(c % 5 == 0) return 0; else return 1; },
         [](int qi) { return qi == 0; }
         );
     
@@ -216,10 +203,88 @@ int main(int argc, const char * argv[]) {
      Task 9.
      For each example DFA, write a dozen tests of their behavior
     */
-    std::cout << "DFA 1: Tesing rejected strings:" << std::endl;
-    for(int i = 0; i < 6; i++)
+    std::cout << std::endl << "DFA a: Testing accepted strings:" << std::endl; // DFA a.
+    std::vector<int> test1 {0,1};
+    for(int j = 1; j <= 6; j++) {
+        std::vector<int> result1;
+        lexi(test1, j, result1);
+        std::cout << "Test " << j << ": ";
+        binary->accepts(*binary, result1);
+    }
+    std::cout << std::endl << "DFA a: Testing rejected strings:" << std::endl;
+    for(int i = 1; i <= 6; i++){
+        std::cout << "Test " << i << ": ";
         binary->accepts(*binary, {i,i+1,i+2});
-
+    }
+    
+    std::cout << std::endl << "DFA b: Testing accepted strings:" << std::endl; // DFA b.
+    int i = 1;
+    for(int j = 1; j <= 12; j = j + 2) {
+        std::vector<int> result2;
+        lexi(test1, j, result2);
+        std::cout << "Test " << i << ": ";
+        i++;
+        evenBinary->accepts(*evenBinary, result2);
+    }
+    std::cout << std::endl << "DFA b: Testing rejected strings:" << std::endl;
+    i = 1;
+    for(int j = 2; j <= 12; j = j + 2) {
+        std::vector<int> result2b;
+        lexi(test1, j, result2b);
+        std::cout << "Test " << i << ": ";
+        i++;
+        evenBinary->accepts(*evenBinary, result2b);
+    }
+    
+    std::cout << std::endl << "DFA c: Testing accepted strings:" << std::endl; // DFA c.
+    i = 1;
+    for(int j = 2; j <= 12; j = j + 2) {
+        std::vector<int> result3;
+        lexi(test1, j, result3);
+        std::cout << "Test " << i << ": ";
+        i++;
+        oddBinary->accepts(*oddBinary, result3);
+    }
+    std::cout << std::endl << "DFA c: Testing rejected strings:" << std::endl;
+    i = 1;
+    for(int j = 1; j <= 12; j = j + 2) {
+        std::vector<int> result3b;
+        lexi(test1, j, result3b);
+        std::cout << "Test " << i << ": ";
+        i++;
+        oddBinary->accepts(*oddBinary, result3b);
+    }
+    
+    std::cout << std::endl << "DFA d: Testing accepted strings:" << std::endl; // DFA d.
+    i = 1;
+    for(int j = 0; j < 12; j = j + 2){
+        std::cout << "Test " << i << ": ";
+        evenNum->accepts(*evenNum, {j, j + 1, j + 2});
+        i++;
+    }
+    std::cout << std::endl << "DFA d: Testing rejected strings:" << std::endl;
+    i = 1;
+    for(int j = 1; j < 12; j = j + 2){
+        std::cout << "Test " << i << ": ";
+        evenNum->accepts(*evenNum, {j, j + 1, j + 2});
+        i++;
+    }
+    
+    std::cout << std::endl << "DFA e: Testing accepted strings:" << std::endl; // DFA e.
+    i = 1;
+    for(int j = 1; j < 12; j = j + 2){
+        std::cout << "Test " << i << ": ";
+        oddNum->accepts(*oddNum, {j, j + 1, j + 2});
+        i++;
+    }
+    std::cout << std::endl << "DFA e: Testing rejected strings:" << std::endl;
+    i = 1;
+    for(int j = 0; j < 12; j = j + 2){
+        std::cout << "Test " << i << ": ";
+        oddNum->accepts(*oddNum, {j, j + 1, j + 2});
+        i++;
+    }
+    
     return 0;
 }
     
@@ -258,5 +323,18 @@ std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result) {
     }
 
     return result;
+}
+
+/*
+ Task 7.
+ DFA that accepts only strings of exactly that character
+*/
+DFA<int> task7(int ch) {
+    DFA<int> *z = new DFA<int>(
+        [](int x) { return (x == 0) || (x == 1) || (x == 2); },
+        0,
+        [=](int qi, int c) { if(c == ch && qi == 0) return 1; else return 2; },
+        [](int qi) { return qi == 1; } );
+    return *z;
 }
 
