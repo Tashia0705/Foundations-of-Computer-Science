@@ -156,7 +156,7 @@ int main(int argc, const char * argv[]) {
     DFA<int> *evenLength = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) { if (qi == 1) return 1; else return 0;},
+        [](int qi, int c) { if (qi == 1) return 0; else return 1;},
         [](int qi) { return qi == 0; }
         );
     
@@ -164,7 +164,7 @@ int main(int argc, const char * argv[]) {
     DFA<int> *oddLength = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) { if (qi == 0) return 0; else return 1;},
+        [](int qi, int c) { if (qi == 0) return 1; else return 0;},
         [](int qi) { return qi == 1; }
         );
     
@@ -180,7 +180,7 @@ int main(int argc, const char * argv[]) {
     DFA<int> *ones= new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) { if (c == 1) return 0; else return 1;},
+        [](int qi, int c) {if(c == 1) return 0; else return 1;},
         [](int qi) { return qi == 0; }
         );
     
@@ -188,7 +188,7 @@ int main(int argc, const char * argv[]) {
     DFA<int> *evenZeros= new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) { if (c == 0 && qi != 1) return 0; else return 1;},
+        [](int qi, int c) { if (c == 0 && qi == 1) return 0; else return 1;},
         [](int qi) { return qi == 0; }
         );
     
@@ -196,7 +196,7 @@ int main(int argc, const char * argv[]) {
     DFA<int> *oddOnes= new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) { if (c == 1 && qi != 0) return 1; else return 0;},
+        [](int qi, int c) { if (c == 1 && qi == 0) return 1; else return 0;},
         [](int qi) { return qi == 1; }
         );
     /*
@@ -285,6 +285,92 @@ int main(int argc, const char * argv[]) {
         i++;
     }
     
+    std::cout << std::endl << "DFA f: Testing accepted strings:" << std::endl; // DFA f.
+    i = 1;
+    for(int j = 5; j < 60; j = j + 10){
+        std::cout << "Test " << i << ": ";
+        five->accepts(*five, {j + 1, j + 2, j});
+        i++;
+    }
+    std::cout << std::endl << "DFA f: Testing rejected strings:" << std::endl;
+    for(int j = 1; j < 5; j++){
+        std::cout << "Test " << j << ": ";
+        five->accepts(*five, {j, j, j});
+    }
+    std::cout << "Test " << 5 << ": ";
+    five->accepts(*five, {7,4,63});
+    std::cout << "Test " << 6 << ": ";
+    five->accepts(*five, {0,45,97});
+    
+    std::cout << std::endl << "DFA g: Testing accepted strings:" << std::endl; // DFA g.
+    for(int i = 1; i < 7; i++) {
+        std::cout << "Test " << i << ": ";
+        evenLength->accepts(*evenLength, {i,i + 4,i + 7, i + 2});
+    }
+    std::cout << std::endl << "DFA g: Testing rejected strings:" << std::endl;
+    for(int i = 1; i < 7; i++) {
+        std::cout << "Test " << i << ": ";
+        evenLength->accepts(*evenLength, {i,i + 4, i + 3});
+    }
+    
+    std::cout << std::endl << "DFA h: Testing accepted strings:" << std::endl; // DFA h.
+    for(int i = 1; i < 7; i++) {
+        std::cout << "Test " << i << ": ";
+        oddLength->accepts(*oddLength, {i,i + 1, i + 2});
+    }
+    
+    std::cout << std::endl << "DFA h: Testing rejected strings:" << std::endl;
+    for(int i = 1; i < 7; i++) {
+        std::cout << "Test " << i << ": ";
+        oddLength->accepts(*oddLength, {i,i + 3,});
+    }
+    
+    std::cout << std::endl << "DFA i: Testing accepted strings:" << std::endl; // DFA i.
+    std::vector<int> result4;
+    for(int i = 1; i < 7; i++) {
+        std::cout << "Test " << i << ": ";
+        result4.push_back(0);
+        zeros->accepts(*zeros, result4);
+    }
+    result4.clear();
+    std::cout << std::endl << "DFA i: Testing rejected strings:" << std::endl;
+    for(int i = 1; i < 7; i++) {
+        std::cout << "Test " << i << ": ";
+        result4.push_back(2);
+        zeros->accepts(*zeros, result4);
+    }
+    
+    std::cout << std::endl << "DFA j: Testing accepted strings:" << std::endl; // DFA j.
+    result4.clear();
+    for(int i = 1; i < 7; i++) {
+        std::cout << "Test " << i << ": ";
+        result4.push_back(1);
+        ones->accepts(*ones, result4);
+    }
+    result4.clear();
+    std::cout << std::endl << "DFA j: Testing rejected strings:" << std::endl;
+    for(int i = 1; i < 7; i++) {
+        std::cout << "Test " << i << ": ";
+        result4.push_back(5);
+        ones->accepts(*ones, result4);
+    }
+    
+    std::cout << std::endl << "DFA k: Testing all 12 strings:" << std::endl; // DFA k.
+    result4.clear();
+    for(int i = 1; i <= 12; i++) {
+        std::cout << "Test " << i << ": ";
+        result4.push_back(0);
+        evenZeros->accepts(*evenZeros, result4);
+    }
+    
+    std::cout << std::endl << "DFA l: Testing all 12 strings:" << std::endl; // DFA l.
+    result4.clear();
+    for(int i = 1; i <= 12; i++) {
+        std::cout << "Test " << i << ": ";
+        result4.push_back(1);
+        oddOnes->accepts(*oddOnes, result4);
+    }
+    
     return 0;
 }
     
@@ -337,4 +423,6 @@ DFA<int> task7(int ch) {
         [](int qi) { return qi == 1; } );
     return *z;
 }
+
+
 
