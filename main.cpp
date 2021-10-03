@@ -4,6 +4,9 @@
 #include <string>
 #include <functional>
 
+int tests = 0;
+int fails = 0;
+
 std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result);
 
 /*
@@ -95,7 +98,7 @@ int main(int argc, const char * argv[]) {
     */
     DFA<int> *y = new DFA<int>(
         [](int x) { return (x == 0) || (x == 1); },
-        1,
+        0,
         [](int qi, int c) { return 1; },
         [](int qi) { return qi == 0; }
     );
@@ -116,15 +119,15 @@ int main(int argc, const char * argv[]) {
     DFA<int> *evenBinary = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) { if((c ^ 1) == c + 1) return 0; else return 1; },
+        [](int qi, int c) { if(c == 0) return 0; else return 1; },
         [](int qi) { return qi == 0; }
-        );
+        ); //sigma is = to all natural nums
     
     // c. DFA that only accepts odd binary nums
     DFA<int> *oddBinary = new DFA<int> (
         [](int x) { return (x == 0) || (x == 1); },
         0,
-        [](int qi, int c) { if((c ^ 1) == c + 1) return 1; else return 0; },
+        [](int qi, int c) { if(c == 1) return 0; else return 1; },
         [](int qi) { return qi == 0; }
         );
     
@@ -150,7 +153,7 @@ int main(int argc, const char * argv[]) {
         0,
         [](int qi, int c) { if(c % 5 == 0) return 0; else return 1; },
         [](int qi) { return qi == 0; }
-        );
+        ); // change dfa
     
     // g. DFA that only accepts evenly long strings
     DFA<int> *evenLength = new DFA<int> (
@@ -424,5 +427,13 @@ DFA<int> task7(int ch) {
     return *z;
 }
 
-
+// Testing DFAs
+void check(std::vector<int> str, bool result, bool expResult) {
+    tests++;
+    if(result != expResult) {
+        fails++;
+        for(int i = 0; i < str.size(); i++)
+            std::cout << "Failed: " << str[i] << std::endl;
+    }
+}
 
