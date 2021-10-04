@@ -4,9 +4,6 @@
 #include <string>
 #include <functional>
 
-int tests = 0;
-int fails = 0;
-
 std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result);
 
 /*
@@ -37,18 +34,19 @@ class DFA {
             qi = D(qi, w[i]);
             traceStates.push_back(qi);
         }
-        
-        if(F(qi))
-            std::cout << "Accepted" << std::endl;
-        else
-            std::cout << "Rejected" << std::endl;
-        
-        for(int i = 0; i < traceStates.size(); i++) // trace states
-            std::cout << "-> " << traceStates[i] << " ";
-        std::cout << std::endl;
         return F(qi);
     }
     
+    void trace(DFA d, std::vector<int> w) {
+       if(accepts(d, w))
+           std::cout << "Accepted" << std::endl;
+       else
+           std::cout << "Rejected" << std::endl;
+       for(int i = 0; i < traceStates.size(); i++) // trace states
+           std::cout << "-> " << traceStates[i] << " ";
+       std::cout << std::endl;
+   }
+
     
 };
 
@@ -70,14 +68,12 @@ int main(int argc, const char * argv[]) {
      from an alphabet."
      ex. {1,0,1} is a sequence taken from the alphabet {0,1}
     */
-    for(int j = 0; j < 20; j++) {
-        std::vector<int> result;
-        lexi(set, j, result);
+    std::vector<int> result_;
+    lexi(set, 13, result_);
     
-        for(int i = 0; i < result.size(); i++)
-            std::cout << result[i];
-        std::cout << std::endl;
-    }
+    for(int i = 0; i < result_.size(); i++)
+        std::cout << result_[i];
+    std::cout << std::endl;
     
     /*
      Task 5.
@@ -207,173 +203,215 @@ int main(int argc, const char * argv[]) {
      For each example DFA, write a dozen tests of their behavior
     */
     std::cout << std::endl << "DFA a: Testing accepted strings:" << std::endl; // DFA a.
-    std::vector<int> test1 {0,1};
+    std::vector<int> vec1 {0,1};
+    std::vector<int> result;
+    int tests = 0;
     for(int j = 1; j <= 6; j++) {
-        std::vector<int> result1;
-        lexi(test1, j, result1);
-        std::cout << "Test " << j << ": ";
-        binary->accepts(*binary, result1);
+        result.clear();
+        lexi(vec1, j, result);
+        if(binary->accepts(*binary, result) == true)
+            tests++;
+        binary->trace(*binary, result);
     }
+    std::cout << tests << " PASSED TESTS" << std::endl;
+    
     std::cout << std::endl << "DFA a: Testing rejected strings:" << std::endl;
-    for(int i = 1; i <= 6; i++){
-        std::cout << "Test " << i << ": ";
-        binary->accepts(*binary, {i,i+1,i+2});
+    int fails = 0;
+    for(int i = 1; i <= 6; i++) {
+        if(binary->accepts(*binary, {i,i+1,i+2}) == false)
+            fails++;
+        binary->trace(*binary, {i,i+1,i+2});
     }
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA b: Testing accepted strings:" << std::endl; // DFA b.
-    int i = 1;
+    tests = 0;
     for(int j = 1; j <= 12; j = j + 2) {
-        std::vector<int> result2;
-        lexi(test1, j, result2);
-        std::cout << "Test " << i << ": ";
-        i++;
-        evenBinary->accepts(*evenBinary, result2);
+        result.clear();
+        lexi(vec1, j, result);
+        if(evenBinary->accepts(*evenBinary, result) == true)
+            tests++;
+        evenBinary->trace(*evenBinary, result);
     }
-    std::cout << std::endl << "DFA b: Testing rejected strings:" << std::endl;
-    i = 1;
-    for(int j = 2; j <= 12; j = j + 2) {
-        std::vector<int> result2b;
-        lexi(test1, j, result2b);
-        std::cout << "Test " << i << ": ";
-        i++;
-        evenBinary->accepts(*evenBinary, result2b);
-    }
+    std::cout << tests << " PASSED TESTS" << std::endl;
     
-    std::cout << std::endl << "DFA c: Testing accepted strings:" << std::endl; // DFA c.
-    i = 1;
+    std::cout << std::endl << "DFA b: Testing rejected strings:" << std::endl;
+    fails = 0;
     for(int j = 2; j <= 12; j = j + 2) {
-        std::vector<int> result3;
-        lexi(test1, j, result3);
-        std::cout << "Test " << i << ": ";
-        i++;
-        oddBinary->accepts(*oddBinary, result3);
+        result.clear();
+        lexi(vec1, j, result);
+        if(evenBinary->accepts(*evenBinary, result) == false)
+            fails++;
+        evenBinary->trace(*evenBinary, result);
     }
+    std::cout << fails << " FAILED TESTS" << std::endl;
+        
+    std::cout << std::endl << "DFA c: Testing accepted strings:" << std::endl; // DFA c.
+    tests = 0;
+    for(int j = 2; j <= 12; j = j + 2) {
+        result.clear();
+        lexi(vec1, j, result);
+        if(oddBinary->accepts(*oddBinary, result) == true)
+            tests++;
+        oddBinary->trace(*oddBinary, result);
+    }
+    std::cout << tests << " PASSED TESTS" << std::endl;
+    
     std::cout << std::endl << "DFA c: Testing rejected strings:" << std::endl;
-    i = 1;
+    fails = 0;
     for(int j = 1; j <= 12; j = j + 2) {
-        std::vector<int> result3b;
-        lexi(test1, j, result3b);
-        std::cout << "Test " << i << ": ";
-        i++;
-        oddBinary->accepts(*oddBinary, result3b);
+        result.clear();
+        lexi(vec1, j, result);
+        if(oddBinary->accepts(*oddBinary, result) == false)
+            fails++;
+        oddBinary->trace(*oddBinary, result);
     }
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA d: Testing accepted strings:" << std::endl; // DFA d.
-    i = 1;
-    for(int j = 0; j < 12; j = j + 2){
-        std::cout << "Test " << i << ": ";
-        evenNum->accepts(*evenNum, {j, j + 1, j + 2});
-        i++;
+    tests = 0;
+    for(int j = 0; j < 12; j = j + 2) {
+        if(evenNum->accepts(*evenNum, {j, j + 1, j + 2}) == true)
+            tests++;
+        evenNum->trace(*evenNum, {j, j + 1, j + 2});
     }
+    std::cout << tests << " PASSED TESTS" << std::endl;
+    
     std::cout << std::endl << "DFA d: Testing rejected strings:" << std::endl;
-    i = 1;
+    fails = 0;
     for(int j = 1; j < 12; j = j + 2){
-        std::cout << "Test " << i << ": ";
-        evenNum->accepts(*evenNum, {j, j + 1, j + 2});
-        i++;
+        if(evenNum->accepts(*evenNum, {j, j + 1, j + 2}) == false)
+            fails++;
+        evenNum->trace(*evenNum, {j, j + 1, j + 2});
     }
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA e: Testing accepted strings:" << std::endl; // DFA e.
-    i = 1;
+    tests = 0;
     for(int j = 1; j < 12; j = j + 2){
-        std::cout << "Test " << i << ": ";
-        oddNum->accepts(*oddNum, {j, j + 1, j + 2});
-        i++;
+        if(oddNum->accepts(*oddNum, {j, j + 1, j + 2}) == true)
+            tests++;
+        oddNum->trace(*oddNum, {j, j + 1, j + 2});
     }
-    std::cout << std::endl << "DFA e: Testing rejected strings:" << std::endl;
-    i = 1;
-    for(int j = 0; j < 12; j = j + 2){
-        std::cout << "Test " << i << ": ";
-        oddNum->accepts(*oddNum, {j, j + 1, j + 2});
-        i++;
-    }
+    std::cout << tests << " PASSED TESTS" << std::endl;
     
-    std::cout << std::endl << "DFA f: Testing accepted strings:" << std::endl; // DFA f.
-    i = 1;
-    for(int j = 5; j < 60; j = j + 10){
-        std::cout << "Test " << i << ": ";
-        five->accepts(*five, {j + 1, j + 2, j});
-        i++;
+    std::cout << std::endl << "DFA e: Testing rejected strings:" << std::endl;
+    fails = 0;
+    for(int j = 0; j < 12; j = j + 2){
+        if(oddNum->accepts(*oddNum, {j, j + 1, j + 2}) == false)
+            fails++;
+        oddNum->trace(*oddNum, {j, j + 1, j + 2});
     }
-    std::cout << std::endl << "DFA f: Testing rejected strings:" << std::endl;
-    for(int j = 1; j < 5; j++){
-        std::cout << "Test " << j << ": ";
-        five->accepts(*five, {j, j, j});
-    }
-    std::cout << "Test " << 5 << ": ";
-    five->accepts(*five, {7,4,63});
-    std::cout << "Test " << 6 << ": ";
-    five->accepts(*five, {0,45,97});
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA g: Testing accepted strings:" << std::endl; // DFA g.
+    tests = 0;
     for(int i = 1; i < 7; i++) {
-        std::cout << "Test " << i << ": ";
-        evenLength->accepts(*evenLength, {i,i + 4,i + 7, i + 2});
+        if(evenLength->accepts(*evenLength, {i,i + 4,i + 7, i + 2}) == true)
+            tests++;
+        evenLength->trace(*evenLength, {i,i + 4,i + 7, i + 2});
     }
+    std::cout << tests << " PASSED TESTS" << std::endl;
+    
     std::cout << std::endl << "DFA g: Testing rejected strings:" << std::endl;
+    fails = 0;
     for(int i = 1; i < 7; i++) {
-        std::cout << "Test " << i << ": ";
-        evenLength->accepts(*evenLength, {i,i + 4, i + 3});
+        if(evenLength->accepts(*evenLength, {i,i + 4, i + 3}) == false)
+            fails++;
+        evenLength->trace(*evenLength, {i,i + 4, i + 3});
     }
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA h: Testing accepted strings:" << std::endl; // DFA h.
+    tests = 0;
     for(int i = 1; i < 7; i++) {
-        std::cout << "Test " << i << ": ";
-        oddLength->accepts(*oddLength, {i,i + 1, i + 2});
+        if(oddLength->accepts(*oddLength, {i,i + 1, i + 2}) == true)
+            tests++;
+        oddLength->trace(*oddLength, {i,i + 1, i + 2});
     }
+    std::cout << tests << " PASSED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA h: Testing rejected strings:" << std::endl;
+    fails = 0;
     for(int i = 1; i < 7; i++) {
-        std::cout << "Test " << i << ": ";
-        oddLength->accepts(*oddLength, {i,i + 3,});
+        if(oddLength->accepts(*oddLength, {i,i + 3,}) == false)
+            fails++;
+        oddLength->trace(*oddLength, {i,i + 3,});
     }
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA i: Testing accepted strings:" << std::endl; // DFA i.
-    std::vector<int> result4;
+    result.clear();
+    tests = 0;
     for(int i = 1; i < 7; i++) {
-        std::cout << "Test " << i << ": ";
-        result4.push_back(0);
-        zeros->accepts(*zeros, result4);
+        result.push_back(0);
+        if(zeros->accepts(*zeros, result) == true)
+            tests++;
+        zeros->trace(*zeros, result);
     }
-    result4.clear();
+    std::cout << tests << " PASSED TESTS" << std::endl;
+    
     std::cout << std::endl << "DFA i: Testing rejected strings:" << std::endl;
+    result.clear();
+    fails = 0;
     for(int i = 1; i < 7; i++) {
-        std::cout << "Test " << i << ": ";
-        result4.push_back(2);
-        zeros->accepts(*zeros, result4);
+        result.push_back(2);
+        if(zeros->accepts(*zeros, result) == false)
+            fails++;
+        zeros->trace(*zeros, result);
     }
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA j: Testing accepted strings:" << std::endl; // DFA j.
-    result4.clear();
+    result.clear();
+    tests = 0;
     for(int i = 1; i < 7; i++) {
-        std::cout << "Test " << i << ": ";
-        result4.push_back(1);
-        ones->accepts(*ones, result4);
+        result.push_back(1);
+        if(ones->accepts(*ones, result) == true)
+            tests++;
+        ones->trace(*ones, result);
     }
-    result4.clear();
+    std::cout << tests << " PASSED TESTS" << std::endl;
+    
     std::cout << std::endl << "DFA j: Testing rejected strings:" << std::endl;
+    result.clear();
+    fails = 0;
     for(int i = 1; i < 7; i++) {
-        std::cout << "Test " << i << ": ";
-        result4.push_back(5);
-        ones->accepts(*ones, result4);
+        result.push_back(5);
+        if(ones->accepts(*ones, result) == false)
+            fails++;
+        ones->trace(*ones, result);
     }
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA k: Testing all 12 strings:" << std::endl; // DFA k.
-    result4.clear();
+    result.clear();
+    tests = 0; fails = 0;
     for(int i = 1; i <= 12; i++) {
-        std::cout << "Test " << i << ": ";
-        result4.push_back(0);
-        evenZeros->accepts(*evenZeros, result4);
+        result.push_back(0);
+        if(evenZeros->accepts(*evenZeros, result) == true)
+            tests++;
+        else
+            fails++;
+        evenZeros->trace(*evenZeros, result);
     }
+    std::cout << tests << " PASSED TESTS" << std::endl;
+    std::cout << fails << " FAILED TESTS" << std::endl;
     
     std::cout << std::endl << "DFA l: Testing all 12 strings:" << std::endl; // DFA l.
-    result4.clear();
+    result.clear();
+    tests = 0; fails = 0;
     for(int i = 1; i <= 12; i++) {
-        std::cout << "Test " << i << ": ";
-        result4.push_back(1);
-        oddOnes->accepts(*oddOnes, result4);
+        result.push_back(1);
+        if(oddOnes->accepts(*oddOnes, result) == true)
+            tests++;
+        else
+            fails++;
+        oddOnes->trace(*oddOnes, result);
     }
-    
+    std::cout << tests << " PASSED TESTS" << std::endl;
+    std::cout << fails << " FAILED TESTS" << std::endl;
+
     return 0;
 }
     
@@ -386,7 +424,6 @@ std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result) {
         std::cout << "";
     }
     else {
-    
         // generate the value of the nth string
         unsigned long size = alph.size();
         int i = 0;
@@ -425,15 +462,5 @@ DFA<int> task7(int ch) {
         [=](int qi, int c) { if(c == ch && qi == 0) return 1; else return 2; },
         [](int qi) { return qi == 1; } );
     return *z;
-}
-
-// Testing DFAs
-void check(std::vector<int> str, bool result, bool expResult) {
-    tests++;
-    if(result != expResult) {
-        fails++;
-        for(int i = 0; i < str.size(); i++)
-            std::cout << "Failed: " << str[i] << std::endl;
-    }
 }
 
