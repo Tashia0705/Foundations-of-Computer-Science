@@ -37,15 +37,47 @@ class DFA {
         return F(qi);
     }
     
-    void trace(DFA d, std::vector<int> w) {
-       if(accepts(d, w))
-           std::cout << "Accepted" << std::endl;
-       else
-           std::cout << "Rejected" << std::endl;
-       for(int i = 0; i < traceStates.size(); i++) // trace states
-           std::cout << "-> " << traceStates[i] << " ";
-       std::cout << std::endl;
+    /*
+     Task 11.
+     Write a function that given a DFA and a string, returns the trace of configurations it visits.
+    */
+    std::vector<State> trace(DFA d, std::vector<int> w) {
+        if(accepts(d, w))
+            std::cout << "Accepted" << std::endl;
+        else
+            std::cout << "Rejected" << std::endl;
+        for(int i = 0; i < traceStates.size(); i++) // trace states
+            std::cout << "-> " << traceStates[i] << " ";
+        std::cout << std::endl;
+        return traceStates;
    }
+    
+    /*
+     Task 12.
+     Write a function that given a DFA, returns a string that would be accepted
+     (or false if this is not possible).
+    */
+    
+    std::vector<State> getString(DFA d, State qi, std::vector<State> alph, std::vector<State> w) {
+        std::vector<State> visited{d.q0};
+        if(accepts(d, w))
+            return w;
+        for(int i = 0; i < alph.size(); i++) {
+            State qNext = D(qi, alph[i]);
+            auto x = std::find(visited.begin(), visited.end(), qNext);
+            if(x == visited.end()) {
+                visited.push_back(qNext);
+                w.push_back(alph[i]);
+                w = getString(d, qNext, alph, w);
+                if(w.size() > 0)
+                    return w;
+            }
+        }
+        for(int i = 0; i < w.size(); i++)
+            std::cout << w[i];
+        std::cout << std::endl;
+        return w;
+    }
 
     
 };
@@ -408,6 +440,7 @@ int main(int argc, const char * argv[]) {
         else
             fails++;
         oddOnes->trace(*oddOnes, result);
+        oddOnes->getString(*oddOnes, 0, {1}, {0,1});
     }
     std::cout << tests << " PASSED TESTS" << std::endl;
     std::cout << fails << " FAILED TESTS" << std::endl;
