@@ -66,11 +66,11 @@ class DFA {
     while(!notVisited.empty()) {
       std::pair<int,std::vector<int>> qi_w = notVisited.front();
       notVisited.erase(notVisited.begin()); 
-      if(F(qi_w.first))
+      if(d.F(qi_w.first))
         return qi_w.second; 
       for(int i = 0; i < alph.size(); i++) {
         int c = alph[i];
-        int qj = D(qi_w.first, c); 
+        int qj = d.D(qi_w.first, c); 
         if(!std::count(visited.begin(), visited.end(), qj)) {
           visited.push_back(qj); 
           notVisited.push_back(std::make_pair(qj, qi_w.second));
