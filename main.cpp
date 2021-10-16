@@ -3,6 +3,7 @@
 #include <math.h>
 #include <string>
 #include <functional>
+#include <utility> 
 
 std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result);
 
@@ -22,45 +23,45 @@ class DFA {
     std::function<bool (State)> F;
     std::vector<State> traceStates;
     
-    /*
-     Task 10.
-     Write a function that given a DFA and a string, determines if the string is accepted.
-    */
-    bool accepts(DFA d, std::vector<int> w) {
-        State qi = q0;
-        traceStates.clear();
-        traceStates.push_back(qi);
-        for(int i = 0; i < w.size(); i++) {
-            qi = D(qi, w[i]);
-            traceStates.push_back(qi);
-        }
-        return F(qi);
+  /*
+   Task 10.     
+   Write a function that given a DFA and a string, determines if the string is accepted.
+  */
+  bool accepts(DFA d, std::vector<int> w) {
+    State qi = q0;        
+    traceStates.clear();
+    traceStates.push_back(qi);
+    for(int i = 0; i < w.size(); i++) {
+      qi = D(qi, w[i]);
+      traceStates.push_back(qi);
     }
+    return F(qi);
+  }
     
-    /*
-     Task 11.
-     Write a function that given a DFA and a string, returns the trace of configurations it visits.
-    */
-    std::vector<State> trace(DFA d, std::vector<int> w) {
-       if(accepts(d, w))
-           std::cout << "Accepted" << std::endl;
-       else
-           std::cout << "Rejected" << std::endl;
-       for(int i = 0; i < traceStates.size(); i++) // trace states
-           std::cout << "-> " << traceStates[i] << " ";
-       std::cout << std::endl;
-       return traceStates;
-   }
+  /*
+  Task 11.
+  Write a function that given a DFA and a string, returns the trace of configurations it visits.
+  */
+  std::vector<State> trace(DFA d, std::vector<int> w) {
+    if(accepts(d, w))
+      std::cout << "Accepted" << std::endl;
+    else
+      std::cout << "Rejected" << std::endl;
+    for(int i = 0; i < traceStates.size(); i++) // trace states
+      std::cout << "-> " << traceStates[i] << " ";
+    std::cout << std::endl;
+    return traceStates;
+  }
     
-    /*
+  /*
   Task 12.
   Write a function that given a DFA, returns a string that would be accepted
   (or false if this is not possible).
   */
   std::vector<State> getString(DFA d, std::vector<State> alph) {
-    std::vector<State> visited{d.q0};
+    std::vector<State> visited{q0};
     std::vector< std::pair <int,std::vector<int>>> notVisited; 
-    notVisited.push_back(std::make_pair(d.q0, NULL)); 
+    notVisited.push_back(std::make_pair(q0, NULL)); 
     
     while(!notVisited.empty()) {
       std::pair<int,std::vector<int>> qi_w = notVisited.front();
@@ -77,6 +78,33 @@ class DFA {
       }
     }
   }
+
+  /*
+  Task 13.
+  Write a function that takes one DFA and returns a DFA that accepts that the given one does not
+  */ 
+
+  DFA<int> complement(DFA d) {
+    auto f = [=](State qi) { return !F(qi); };
+    return DFA<int>(Q,q0,D,f); 
+  }
+
+  /*
+  Task 14.
+  Write a function that takes two DFAs and returns a third DFA that accepts a string if either
+  argument accepts it
+  */
+  DFA<std::pair<State,State>> union(DFA a, DFA b) {
+    return DFA<std::pair<State,State>> (
+      [a.Q, b.Q] (std::pair<State,State>) state) { return a.Q(state.first) && b.Q(state.second); }, 
+      std::pair<State,State> { a.q0, b.q0 },
+      [a.D, b.D] (std::pair<State,State> state, int c) { 
+        State q1 = a.D(state.first, c); 
+        State q2 = b.D(state.second, c);
+        return std::pair<State,State>{q1,q2}; 
+      },
+      [a.F, b.F] (std::pair<State,State> state){ return a.F(state.first) || b.first(state.second); });
+  };
     
 };
 
@@ -438,10 +466,11 @@ int main(int argc, const char * argv[]) {
         else
             fails++;
         oddOnes->trace(*oddOnes, result);
-        oddOnes->getString(*oddOnes, 0, {1}, {0,1});
     }
     std::cout << tests << " PASSED TESTS" << std::endl;
     std::cout << fails << " FAILED TESTS" << std::endl;
+    //oddOnes->getString(*oddOnes,{0,1}); 
+    oddOnes->complement(*oddOnes); 
 
     return 0;
 }
@@ -494,4 +523,3 @@ DFA<int> task7(int ch) {
         [](int qi) { return qi == 1; } );
     return *z;
 }
-
