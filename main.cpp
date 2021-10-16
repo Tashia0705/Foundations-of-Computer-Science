@@ -61,7 +61,8 @@ class DFA {
   std::vector<State> getString(DFA d, std::vector<State> alph) {
     std::vector<State> visited{d.q0};
     std::vector< std::pair <int,std::vector<int>>> notVisited; 
-    notVisited.push_back(std::make_pair(d.q0, NULL)); 
+    std::vector<int> x(-1); // -1 is epsilon 
+    notVisited.push_back(std::make_pair(d.q0, x)); 
     
     while(!notVisited.empty()) {
       std::pair<int,std::vector<int>> qi_w = notVisited.front();
