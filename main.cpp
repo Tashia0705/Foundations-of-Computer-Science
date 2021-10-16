@@ -59,9 +59,9 @@ class DFA {
   (or false if this is not possible).
   */
   std::vector<State> getString(DFA d, std::vector<State> alph) {
-    std::vector<State> visited{q0};
+    std::vector<State> visited{d.q0};
     std::vector< std::pair <int,std::vector<int>>> notVisited; 
-    notVisited.push_back(std::make_pair(q0, NULL)); 
+    notVisited.push_back(std::make_pair(d.q0, NULL)); 
     
     while(!notVisited.empty()) {
       std::pair<int,std::vector<int>> qi_w = notVisited.front();
