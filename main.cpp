@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <utility> 
+#include <optional>
 
 std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result);
 
@@ -58,54 +59,58 @@ class DFA {
   Write a function that given a DFA, returns a string that would be accepted
   (or false if this is not possible).
   */
-  std::vector<State> getString(DFA d, std::vector<State> alph) {
+  std::optional<std::vector<int>> getString(DFA d, std::vector<int> alph) {
     std::vector<State> visited{d.q0};
-    std::vector< std::pair <int,std::vector<int>>> notVisited; 
-    std::vector<int> x(-1); // -1 is epsilon 
+    std::vector<std::pair <int,std::vector<int>>> notVisited; 
+    std::vector<int> x{-1}; // -1 is epsilon 
     notVisited.push_back(std::make_pair(d.q0, x)); 
-    
+
     while(!notVisited.empty()) {
-      std::pair<int,std::vector<int>> qi_w = notVisited.front();
-      notVisited.erase(notVisited.begin()); 
+      std::pair<int,std::vector<int>> qi_w = notVisited.front(); 
+      notVisited.erase(notVisited.begin());
       if(d.F(qi_w.first))
         return qi_w.second; 
       for(int i = 0; i < alph.size(); i++) {
         int c = alph[i];
         int qj = d.D(qi_w.first, c); 
-        if(!std::count(visited.begin(), visited.end(), qj)) {
+        std::vector<int>::iterator it;
+        it =  std::find(visited.begin(), visited.end(), qj); 
+        if(it == visited.end()) {
           visited.push_back(qj); 
           notVisited.push_back(std::make_pair(qj, qi_w.second));
         }
       }
+      for(int j = 0; j < qi_w.second.size(); j++) 
+        std::cout << qi_w.second[j]; 
     }
+    return {}; 
   }
 
   /*
   Task 13.
   Write a function that takes one DFA and returns a DFA that accepts that the given one does not
   */ 
-
-  DFA<int> complement(DFA d) {
-    auto f = [=](State qi) { return !F(qi); };
-    return DFA<int>(Q,q0,D,f); 
+  DFA<State> complement(DFA d) {
+    auto fprime = [=](State qi) { return !d.F(qi); };
+    return DFA<State>(d.Q,d.q0,d.D,fprime); 
   }
 
   /*
   Task 14.
   Write a function that takes two DFAs and returns a third DFA that accepts a string if either
-  argument accepts it
+  argument accepts it 
   */
-  DFA<std::pair<State,State>> union(DFA a, DFA b) {
-    return DFA<std::pair<State,State>> (
-      [a.Q, b.Q] (std::pair<State,State>) state) { return a.Q(state.first) && b.Q(state.second); }, 
+  DFA<std::pair<State, State>> Union(DFA a, DFA b) {
+    DFA<std::pair<State, State>> *c = new DFA<std::pair<State, State>> (
+      [a.Q, b.Q] (std::pair<State,State> state) { return a.Q(state.first) && b.Q(state.second); }, 
       std::pair<State,State> { a.q0, b.q0 },
-      [a.D, b.D] (std::pair<State,State> state, int c) { 
-        State q1 = a.D(state.first, c); 
-        State q2 = b.D(state.second, c);
-        return std::pair<State,State>{q1,q2}; 
-      },
-      [a.F, b.F] (std::pair<State,State> state){ return a.F(state.first) || b.first(state.second); });
-  };
+      [a.D, b.D] (std::pair<State,State> state, int character) { 
+        State q1 = a.D(state.first, character); 
+        State q2 = b.D(state.second, character);
+        return std::pair<State,State>{q1,q2}; },
+      [a.F, b.F] (std::pair<State,State> state) { return a.F(state.first) || b.first(state.second); } );
+    return *c; 
+  } 
     
 };
 
@@ -470,7 +475,7 @@ int main(int argc, const char * argv[]) {
     }
     std::cout << tests << " PASSED TESTS" << std::endl;
     std::cout << fails << " FAILED TESTS" << std::endl;
-    //oddOnes->getString(*oddOnes,{0,1}); 
+    oddOnes->getString(*oddOnes,{0,1}); 
     oddOnes->complement(*oddOnes); 
 
     return 0;
