@@ -23,82 +23,6 @@ class DFA {
     State q0;
     std::function<State(State, int)> D;
     std::function<bool (State)> F;
-
-    
-  /* Task 12 - Write a function that given a DFA, returns a string that would be accepted
-  (or false if this is not possible). */
-  std::optional<std::vector<int>> getString(DFA d, std::vector<int> alph) {
-    std::vector<State> visited{d.q0};
-    std::vector<std::pair <int,std::vector<int>>> notVisited; 
-    std::vector<int> x{-1}; // -1 is epsilon 
-    notVisited.push_back(std::make_pair(d.q0, x)); 
-
-    while(!notVisited.empty()) {
-      std::pair<int,std::vector<int>> qi_w = notVisited.front(); 
-      notVisited.erase(notVisited.begin());
-      if(d.F(qi_w.first))
-        return qi_w.second; 
-      for(int i = 0; i < alph.size(); i++) {
-        int c = alph[i];
-        int qj = d.D(qi_w.first, c); 
-        std::vector<int>::iterator it;
-        it =  std::find(visited.begin(), visited.end(), qj); 
-        if(it == visited.end()) {
-          visited.push_back(qj); 
-          notVisited.push_back(std::make_pair(qj, qi_w.second));
-        }
-      }
-      for(int j = 0; j < qi_w.second.size(); j++) 
-        std::cout << qi_w.second[j]; 
-    }
-    return {}; 
-  }
-
-  /* Task 13 - Write a function that takes one DFA and returns a DFA that accepts that the given one does not. */ 
-  DFA<State> complement(DFA d) {
-    auto fprime = [=](State qi) { return !d.F(qi); };
-    return DFA<State>(d.Q,d.q0,d.D,fprime); 
-  }
-
-  /* Task 14 - Write a function that takes two DFAs and returns a third DFA that accepts a string if either
-  argument accepts it. */
-  DFA<std::pair<State, State>> Union(DFA a, DFA b) {
-    DFA<std::pair<State, State>> *c = new DFA<std::pair<State, State>> (
-      [=] (std::pair<State,State> state) { return a.Q(state.first) && b.Q(state.second); }, 
-      std::pair<State,State> { a.q0, b.q0 },
-      [=] (std::pair<State,State> state, int character) { 
-        State qA = a.D(state.first, character); 
-        State qB = b.D(state.second, character);
-        return std::pair<State,State>{qA,qB}; },
-      [=] (std::pair<State,State> state) { return a.F(state.first) || b.F(state.second); } );
-    return *c; 
-  }
-
-  /* Task 16 - Write a function that takes two DFAs and returns a third DFA that accepts a 
-  string if both arguments accepts it. */
-  DFA<std::pair<State, State>> Intersection(DFA a, DFA b) {
-    DFA<std::pair<State, State>> *c = new DFA<std::pair<State, State>> (
-      [=] (std::pair<State,State> state) { return a.Q(state.first) && b.Q(state.second); }, 
-      std::pair<State,State> { a.q0, b.q0 },
-      [=] (std::pair<State,State> state, int character) { 
-        State qA = a.D(state.first, character); 
-        State qB = b.D(state.second, character);
-        return std::pair<State,State>{qA,qB}; },
-      [=] (std::pair<State,State> state) { return a.F(state.first) && b.F(state.second); } );
-    return *c; 
-  }
-
-  /* Task 18 - Write a function which takes two DFAs (X and Y) and returns whether every string accepted
-  by X is also accepted by Y */
-  bool subset(DFA a, DFA b, std::vector<int> alph) {
-    return getString(Intersect(complement(b), a), alph) == false; 
-  }
-
-  /* Task 20 - Write a function which takes two DFAs (X and Y) and returns whether every string accepted 
-  by X is also accepted by Y and vice versa */
-  bool equals(DFA a, DFA b, std::vector<int> alph) {
-    return subset(a, b, alph) && subset(b, a, alph); 
-  }
 };
 
 /* Task 10 -  a function that given a DFA and a string, determines if the string is accepted */
@@ -123,6 +47,46 @@ template<typename State>
       failedTests++; 
     return traceStates<State>;
   } 
+
+      
+  /* Task 12 - Write a function that given a DFA, returns a string that would be accepted
+  (or false if this is not possible). */
+  template<typename State>
+  std::optional<std::vector<State>> getString(DFA<State> d, std::vector<int> alph) {
+    std::vector<State> visited{d.q0};
+    std::vector<std::pair <State,std::vector<State>>> notVisited; 
+    std::vector<int> x{-1}; // -1 is epsilon 
+    notVisited.push_back(std::make_pair(d.q0, x)); 
+
+    while(!notVisited.empty()) {
+      std::pair<State,std::vector<State>> qi_w = notVisited.front(); 
+      notVisited.erase(notVisited.begin());
+      if(d.F(qi_w.first)){
+         return qi_w.second; 
+      }
+      for(int i = 0; i < alph.size(); i++) {
+        int c = alph[i];
+        State qj = d.D(qi_w.first, c); 
+        std::vector<int>::iterator it;
+        it =  std::find(visited.begin(), visited.end(), qj); 
+        if(it == visited.end()) { 
+          visited.push_back(qj); 
+          notVisited.push_back(std::make_pair(qj, qi_w.second));
+        }
+      }
+      for(int j = 0; j < qi_w.second.size(); j++) 
+        std::cout << qi_w.second[j]; 
+    }
+    return {}; 
+  }
+
+  /* Task 13 - Write a function that takes one DFA and returns a DFA that accepts that the given one does not. */ 
+  template<typename State>
+  DFA<State> complement(DFA<State> d) {
+    auto fprime = [=](State qi) { return !d.F(qi); };
+    return DFA<State>(d.Q,d.q0,d.D,fprime);
+
+  }
 
   /* Task 14 - Write a function that takes two DFAs and returns a third DFA that accepts
   a string if either argument accepts it */
@@ -154,6 +118,19 @@ template<typename State>
     return *c; 
   }
 
+  /* Task 18 - Write a function which takes two DFAs (X and Y) and returns whether every string accepted by X is also accepted by Y */
+  template<typename State>
+  bool subset(DFA<State> a, DFA<State> b, std::vector<int> alph) {
+    if(getString(Intersection(complement(b), a), alph)) 
+      return false;
+    return true; 
+  }
+
+  /* Task 20 - Write a function which takes two DFAs (X and Y) and returns whether every string accepted by X is also accepted by Y and vice versa */
+  template<typename State>
+  bool equals(DFA<State> a, DFA<State> b, std::vector<int> alph) {
+    return subset(a, b, alph) && subset(b, a, alph); 
+  } 
 
 int main(int argc, const char * argv[]) {
     /* Task 1 - An alphabet is a finite set of numbers from 0 to some number N. I will use numbers 0 to 9.
@@ -171,7 +148,7 @@ int main(int argc, const char * argv[]) {
     
     /* Task 5.
      DFA that accepts no string - has no accepting state */
-    DFA<int> *x = new DFA<int>(
+    DFA<int> *noStr = new DFA<int>(
         [](int x) { return (x == 0); },
         0,
         [](int qi, int c) { return 0; },
@@ -181,7 +158,7 @@ int main(int argc, const char * argv[]) {
     /*
      Task 6 - DFA that accepts only empty string - accepting state is the start state and any other
      char passed will go to state 1 which is not an accepting state */
-    DFA<int> *y = new DFA<int>(
+    DFA<int> *empty = new DFA<int>(
         [](int x) { return (x == 0) || (x == 1); },
         0,
         [](int qi, int c) { return 1; },
@@ -229,13 +206,7 @@ int main(int argc, const char * argv[]) {
         [](int qi) { return qi == 0; }
         );
     
-    // f. DFA that only accepts numbers ending in 5
-    DFA<int> *five = new DFA<int> (
-        [](int x) { return (x == 0) || (x == 1); },
-        0,
-        [](int qi, int c) { if(c % 5 == 0) return 0; else return 1; },
-        [](int qi) { return qi == 0; }
-        ); // change dfa
+    // f. DFA that only accepts empty string: refer to task 6
     
     // g. DFA that only accepts evenly long strings
     DFA<int> *evenLength = new DFA<int> (
@@ -269,7 +240,7 @@ int main(int argc, const char * argv[]) {
         [](int qi) { return qi == 0; }
         );
     
-    // k. DFA that only accepts even number of 0s
+    // k. DFA that  accepts strings made of only even number of 0s
     DFA<int> *evenZeros = new DFA<int> (
       [] (int x) { return (x == 0) || (x == 1); },
       0,
@@ -277,7 +248,7 @@ int main(int argc, const char * argv[]) {
       [](int qi) { return qi == 0; }
     );
     
-    // l. DFA that only accepts odd number of 1s in a string made of 1s 
+    // l. DFA that accepts strings made of only odd number of 1s 
     DFA<int> *oddOnes= new DFA<int> (
       [](int x) { return (x == 0) || (x == 1); },
       0,
@@ -372,6 +343,14 @@ int main(int argc, const char * argv[]) {
             fails++;
         trace(*oddNum, {j, j + 1, j + 2});
     }
+
+    // DFA f. 
+    if(accepts(*empty, {}) == true) 
+      tests++; 
+    else if(accepts(*empty, {1,2}) == false) 
+      fails++; 
+    trace(*empty, {}); 
+    trace(*empty, {1,2}); 
     
     // DFA g.
     tests = 0;
@@ -466,7 +445,6 @@ int main(int argc, const char * argv[]) {
     }
 
   /* Task 15 - Write a dozen tests for union function. */ 
-
   std::cout << "Testing Union Function" << std::endl; 
   tests = 0; fails = 0;
   if(accepts(Union<int>(*evenNum, *oddNum), {0,2,4}) == true) // test 1
@@ -485,16 +463,157 @@ int main(int argc, const char * argv[]) {
     tests++;
   else 
     fails++; 
-  trace(Union<int>(*evenNum, *binary), {0,1,1,0});
+  trace(Union<int>(*evenNum, *evenBinary), {0,1,1,0});
 
   if(accepts(Union<int>(*oddLength, *oddBinary), {0,1,1,0,2}) == true) // test 4
     tests++;
   else 
     fails++; 
-  trace(Union<int>(*oddLength, *binary), {0,1,1,0,2});
+  trace(Union<int>(*oddLength, *oddBinary), {0,1,1,0,2});
+
+  if(accepts(Union<int>(*evenLength, *evenBinary), {0,1,9,0}) == true) // test 5
+    tests++;
+  else 
+    fails++; 
+  trace(Union<int>(*evenLength, *evenBinary), {0,1,9,0});
+
+  if(accepts(Union<int>(*zeros, *ones), {0,1,0,1,0}) == true) // test 6
+    tests++;
+  else 
+    fails++; 
+  trace(Union<int>(*zeros, *ones), {0,1,0,1,0});
+
+  if(accepts(Union<int>(*zeros, *ones), {2,3,4,5}) == true) // test 7
+    tests++;
+  else 
+    fails++; 
+  trace(Union<int>(*zeros, *ones), {2,3,4,5});
+
+  if(accepts(Union<int>(*evenNum, *binary), {3,7,9}) == true) // test 8
+    tests++;
+  else 
+    fails++; 
+  trace(Union<int>(*evenNum, *binary), {3,7,9});
+
+  if(accepts(Union<int>(*oddLength, *oddBinary), {0,1,1,0}) == true) // test 9
+    tests++;
+  else 
+    fails++; 
+  trace(Union<int>(*oddLength, *oddBinary), {0,1,1,0});
+
+  if(accepts(Union<int>(*evenLength, *evenBinary), {0,1,9}) == true) // test 10
+    tests++;
+  else 
+    fails++; 
+  trace(Union<int>(*evenLength, *evenBinary), {0,1,9});
+
+  if(accepts(Union<int>(*evenLength, *zeros), {0,8,9}) == true) // test 11
+    tests++;
+  else 
+    fails++; 
+  trace(Union<int>(*evenLength, *zeros), {0,8,9});
+
+  if(accepts(Union<int>(*oddLength, *ones), {0,8,1,7}) == true) // test 12 
+    tests++; 
+  else 
+    fails++; 
+  trace(Union<int>(*oddLength, *ones), {0,8,1,7}); 
+  std::cout << tests << " PASSED TESTS" << std::endl;
+  std::cout << fails << " FAILED TESTS" << std::endl;
+
+  /* Task 17 - Write a dozen tests for Intersection function. */ 
+  std::cout << "Testing Intersection Function" << std::endl; 
+  tests = 0; fails = 0;
+  if(accepts(Intersection<int>(*evenNum, *oddNum), {0,2,4}) == true) // test 1 false
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*evenNum, *oddNum), {0,2,4}); 
+  
+  if(accepts(Intersection<int>(*evenNum, *binary), {0,1,1,1,0}) == true) // test 2 true
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*evenNum, *binary), {0,1,1,1,0});
+
+  if(accepts(Intersection<int>(*oddNum, *evenBinary), {0,1,1,0}) == true) // test 3 false
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*oddNum, *evenBinary), {0,1,1,0});
+
+  if(accepts(Intersection<int>(*oddLength, *oddBinary), {0,1,1,0,1}) == true) // test 4 true
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*oddLength, *oddBinary), {0,1,1,0,1});
+
+  if(accepts(Intersection<int>(*evenLength, *evenBinary), {0,1,1,1,0,0}) == true) // test 5 true 
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*evenLength, *evenBinary), {0,1,1,1,0,0});
+
+  if(accepts(Intersection<int>(*zeros, *ones), {0,1,0,1,0}) == true) // test 6 false
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*zeros, *ones), {0,1,0,1,0});
+
+  if(accepts(Intersection<int>(*zeros, *evenNum), {0,0,0}) == true) // test 7 true
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*zeros, *evenNum), {0,0,0});
+
+  if(accepts(Intersection<int>(*evenNum, *binary), {3,7,9}) == true) // test 8 false
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*evenNum, *binary), {3,7,9});
+
+  if(accepts(Intersection<int>(*oddLength, *oddBinary), {0,1,1,0}) == true) // test 9 false
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*oddLength, *oddBinary), {0,1,1,0});
+
+  if(accepts(Intersection<int>(*evenLength, *evenBinary), {0,1,9}) == true) // test 10 false 
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*evenLength, *evenBinary), {0,1,9});
+
+  if(accepts(Intersection<int>(*evenLength, *zeros), {0,0,0,0}) == true) // test 11 true
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*evenLength, *zeros), {0,0,0,0});
+
+  if(accepts(Intersection<int>(*oddLength, *ones), {1,1,1}) == true) // test 12 true
+    tests++;
+  else 
+    fails++; 
+  trace(Intersection<int>(*oddLength, *ones), {1,1,1}); 
 
   std::cout << tests << " PASSED TESTS" << std::endl;
   std::cout << fails << " FAILED TESTS" << std::endl;
+
+  /* Testing complement function */
+  int pass = 0; int fail = 0;
+  if(accepts(complement(*zeros), {1,1,1}) == true) {
+    pass++; 
+    std::cout << pass << " Passed Tests" << std::endl;
+  }
+  else {
+    fail++; 
+    std::cout << fail << " Failed Tests" << std::endl;
+  }
+
+  std::cout << "Total number of passed tests: " << passedTests << std::endl;
+  std::cout << "Total number of failed tests: " << failedTests << std::endl;  
+
+  //subset(*binary, *evenBinary, {0,1}); 
   return 0;
 }
     
