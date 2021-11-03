@@ -255,6 +255,94 @@ int main(int argc, const char * argv[]) {
       [](int qi, int c) { if (c == 1 && qi == 0) return 1; else return 0;},
       [](int qi) { return qi == 1; }
     );
+  
+  /* Task 25 - Write a dozen example NFAs. */
+  // 1. Example 1.27 from book 
+  NFA<int> *bk127 = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3) || (x == 4); }, 1,
+    [](int qi, int c) {
+      std::vector<int> vec; // holds possible transitions 
+      if(qi == 1 && c == 0) vec.push_back(1); 
+      if(qi == 1 && c == 1) { 
+        vec.push_back(1); 
+        vec.push_back(2);
+      }
+      if(qi == 2 && c == 0) vec.push_back(3);
+      if(qi == 2 && c == -1) vec.push_back(3);
+      if(qi == 3 && c == 1) vec.push_back(4); 
+      if(qi == 4 && (c == 0 || c == 1)) vec.push_back(4);
+      return vec;  
+    }, 
+    [](int qi) { return qi = 4; }
+  );
+
+  // 2. Example 1.31 from book
+  NFA<int> *bk131 = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3) || (x == 4); }, 1,
+    [](int qi, int c) {
+      std::vector<int> vec; 
+      if(qi == 1 && c == 0) vec.push_back(1); 
+      if(qi == 1 && c == 1) { 
+        vec.push_back(1); 
+        vec.push_back(2);
+      }
+      if(qi == 2 && (c == 0 || c == 1)) vec.push_back(3);
+      if(qi == 3 && (c == 0 || c == 1)) vec.push_back(4); 
+      return vec;  
+    }, 
+    [](int qi) { return qi = 4; }
+  );
+
+  // 3. Example 1.36 from book 
+  NFA<int> *bk136 = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
+    [](int qi, int c) {
+      std::vector<int> vec; 
+      if(qi == 1 && c == -1) vec.push_back(3);
+      if(qi == 1 && c == 2) vec.push_back(2); 
+      if(qi == 2 && c == 1) {
+        vec.push_back(2);
+        vec.push_back(3); 
+      }
+      if(qi == 2 && c == 2) vec.push_back(3);
+      if(qi == 3 && c == 1) vec.push_back(1); 
+      return vec;
+    },
+    [](int qi) { return qi = 1; } 
+  );
+
+  // 4. Accepts strings ending in 01; sigma = {0,1}
+  NFA<int> *zerOne = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1, 
+    [](int qi, int c) {
+      std::vector<int> vec; 
+      if(qi == 1 && c == 1) vec.push_back(1); 
+      if(qi == 1 && c == 0) {
+        vec.push_back(1);
+        vec.push_back(2); 
+      }
+      if(qi == 2 && c == 1) vec.push_back(3); 
+      return vec; 
+    },
+    [](int qi) { return qi = 3; }
+  );
+
+  // 5. Accepts strings that have 11; sigma = {0,1}
+  NFA<int> *oneOne = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
+    [](int qi, int c) {
+      std::vector<int> vec; 
+      if(qi == 1 && c == 0) vec.push_back(1); 
+      if(qi == 1 && c == 1) {
+        vec.push_back(1);
+        vec.push_back(2); 
+      }
+      if(qi == 2 && c == 1) vec.push_back(3); 
+      if(qi == 3 && (c == 0 || c == 1)) vec.push_back(3); 
+      return vec;
+    },
+    [](int qi) { return qi = 3; }
+  ); 
 
     /* Task 9 - For each example DFA, write a dozen tests of their behavior */
    // DFA a.
