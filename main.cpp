@@ -1,11 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
-#include <string>
 #include <functional>
 #include <utility> 
-#include <optional> 
-#include<bits/stdc++.h> 
+#include <optional>  
 #include <list> 
 
 std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result);
@@ -37,6 +35,60 @@ class NFA {
     std::function<std::vector<State>(State, int)> D; 
     std::function<bool(State)> F;
 };
+
+/* Task 28 - Define a data type to represent trace trees. */ 
+template<typename State>
+class TraceTree {
+  public: 
+    State qi; 
+    bool result; 
+    int c; 
+    std::vector<TraceTree<State>> branch; 
+    
+    TraceTree() {}
+    TraceTree(State qi, bool result, int c, std::vector<TraceTree<State>> branch): 
+      qi(qi), result(result), c(c), branch(branch) {}
+    TraceTree(State qi, bool result, int c) :
+      qi(qi), result(result), c(c) {} 
+
+  TraceTree explore(NFA<State> n, std::vector<State> w) {
+    return expHelper(n, w, n.q0); 
+  } 
+
+  TraceTree expHelper(NFA<State> n, std::vector<State> w, State qi) {
+    std::vector<TraceTree<State>> branch;
+    std::vector<State> epsilon = n.D(qi, -1);
+    for(unsigned int i = 0; i < epsilon.size(); i++) 
+      branch.push_back(expHelper(n, w, epsilon[i]));
+    
+    if(w.size() > 0) {
+      int ch = w[0];
+      w.erase(w.begin()); 
+      std::vector<State> vec = n.D(qi, ch);
+      for (int i = 0; i < vec.size(); i++)
+        branch.push_back(expHelper(n, w, vec[i]));
+      return TraceTree<State>(qi, n.F(qi), ch, branch);
+    } 
+    return TraceTree<State>(qi, n.F(qi), 0, branch); // needs to be w[0]
+  }
+
+  void printTT(TraceTree tt, int count) {
+    std::cout << std::endl; 
+    for(int i = 0; i < count; i++) 
+      std::cout << "\t"; 
+    count++; 
+    std::cout << "[ State: q" << tt.qi << ", NextChar: " << tt.c;
+    for(auto i : tt.branch)
+      printTT(i, count); 
+    std::cout << std::endl;
+    for (int i = 1; i < count; i++)
+      std::cout << "\t";
+
+    std::cout << "]";
+  }
+};
+
+
 
 /* Task 10 -  a function that given a DFA and a string, determines if the string is accepted */
 template<typename State>
@@ -151,6 +203,35 @@ DFA<State> convert(DFA<State> d) {
     if(c == -1) return std::vector<State> {}; // -1 is epsilon 
     else return std::vector<State> {d.D(q, c)}; };
   return DFA<State>(d.Q,d.q0,dPrime,d.F);
+}
+
+/* Task 27 - Oracle function */ 
+template<typename State>
+bool oracle(NFA<State> n, std::vector<std::pair<State, std::vector<State>>> trace) {
+  if(trace.size() == 0) return true; 
+
+  for(unsigned int i = 1; i < trace.size(); i++) {
+    std::vector<State> cString = trace[i-1].second; 
+    std::vector<State> nString = trace[i].second; 
+    auto c = cString[0]; 
+    auto cState = trace[i-1].first; 
+    auto nState = trace[i].first; 
+
+    if(!cString.empty())
+      cString.erase(cString.begin()); 
+    auto charTr = n.D(trace[i-1].first, c); 
+
+    if(trace[i-1].second == nString) {
+      auto epsilon = n.D(cState, -1); 
+      if(find(epsilon.begin(), epsilon.end(), nState) == epsilon.end()) 
+        return false; 
+    }
+    else if(cString != nString)
+      return false; 
+    else if(find(charTr.begin(), charTr.end(), nState) == charTr.end()) 
+      return false; 
+  }
+  return true; 
 }
 
 int main(int argc, const char * argv[]) {
@@ -314,7 +395,6 @@ int main(int argc, const char * argv[]) {
     _true++;
   else 
     _false++; 
-  
   // true cases
   if(equals(*binary, *binary, {0,1}) == true)
     _true++;
@@ -340,10 +420,9 @@ int main(int argc, const char * argv[]) {
     _true++; 
   else 
     _false++;   
-  
-
-  std::cout << _false << " total cases return FALSE\n";
-  std::cout << _true << " total cases return TRUE\n";
+  std::cout << "Testing Equality Function: \n"; 
+  std::cout << _false << " FALSE CASES \n";
+  std::cout << _true << " TRUE CASES\n";
 
   /* Task 25 - Write a dozen example NFAs. */
   // 1. Example 1.27 from book 
@@ -432,9 +511,26 @@ int main(int argc, const char * argv[]) {
     },
     [](int qi) { return qi = 3; }
   ); 
+
+  // 6. Accepts strings that have 00; sigma = {0,1}
+  NFA<int> *zerZero = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
+    [](int qi, int c) {
+      std::vector<int> vec; 
+      if(qi == 1 && c == 0) vec.push_back(1); 
+      if(qi == 1 && c == 0) {
+        vec.push_back(1);
+        vec.push_back(2); 
+      }
+      if(qi == 2 && c == 0) vec.push_back(3); 
+      if(qi == 3 && (c == 0 || c == 1)) vec.push_back(3); 
+      return vec;
+    },
+    [](int qi) { return qi = 3; }
+  ); 
   
-  // 6. Accepts strings whose second to last char is 1
-  NFA<int> *last1 = new NFA<int> (
+  // 7. Accepts strings whose second to last char is 1
+  NFA<int> *seclast1 = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
     [](int qi, int c) {
       std::vector<int> vec; 
@@ -448,11 +544,133 @@ int main(int argc, const char * argv[]) {
     },
     [](int qi) {return qi = 3; }
   );
-  
-  // 8. Accepts strings made of 4s or 7s use -1 
-  // 9. Accepts strings that are 123 or 321
 
-  return 0;
+  // 8. Accepts strings whose second to last char is 0
+  NFA<int> *seclast0 = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
+    [](int qi, int c) {
+      std::vector<int> vec; 
+      if(qi == 1 && c == 1) vec.push_back(1); 
+      if(qi == 1 && c == 0) {
+        vec.push_back(1);
+        vec.push_back(2);
+      }
+      if(qi == 2 && (c == 1 || c == 0)) vec.push_back(3);
+      return vec; 
+    },
+    [](int qi) { return qi = 3; }
+  );
+
+  // 9. Accepts strings 10 or 101 
+  NFA<int> *nfa_x = new NFA<int> (
+    [](int x) {return (x == 1) || (x == 2) || (x == 3); }, 1,
+    [](int qi, int c) {
+      std::vector<int> vec;
+      if(qi == 1 && c == 1) vec.push_back(2); 
+      if(qi == 2 && c == 0) {
+        vec.push_back(1);
+        vec.push_back(3); 
+      }
+      if(qi == 3 && c == 1) vec.push_back(1);
+      return vec;  
+    },
+    [](int qi) { return qi = 1; } 
+  );
+  
+  // 10. Accepts strings that have 77 
+  NFA<int> *seven7 = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
+    [](int qi, int c) {
+      std::vector<int> vec; 
+      if(qi == 1 && c != 7) vec.push_back(1); 
+      if(qi == 1 && c == 7) {
+        vec.push_back(1);
+        vec.push_back(2); 
+      }
+      if(qi == 2 && c == 7) vec.push_back(3); 
+      if(qi == 3) vec.push_back(3); 
+      return vec;
+    },
+    [](int qi) { return qi = 3; }
+  ); 
+  
+  // 11. Accepts stringss ending in 1
+  NFA<int> *endOne = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2); }, 1,
+    [](int qi , int c) {
+      std::vector<int> vec; 
+      if(qi == 1 && c == 0) vec.push_back(1);
+      if(qi == 1 && c == 1) {
+        vec.push_back(1);
+        vec.push_back(2); 
+      }
+      return vec; 
+    },
+     [](int qi) { return qi = 2; }
+  );
+
+  // 12. Accepts strings ending in 5
+  NFA<int> *endFive = new NFA<int> (
+    [](int x) { return (x == 1) || (x == 2); }, 1,
+    [](int qi , int c) {
+      std::vector<int> vec; 
+      if(qi == 1) vec.push_back(1);
+      if(qi == 1 && c == 5) {
+        vec.push_back(1);
+        vec.push_back(2); 
+      }
+      return vec; 
+    },
+     [](int qi) { return qi = 2; }
+  );
+
+  /* Task 26 - For each example NFA, write a dozen traces of their behavior */
+  int true_, false_; 
+  std::vector<std::pair<int, std::vector<int>>> trace1 {
+    std::pair<int, std::vector<int>>(1, {1,0,1}), 
+    std::pair<int, std::vector<int>>(1, {0,1}), 
+    std::pair<int, std::vector<int>>(2, {1}),
+    std::pair<int, std::vector<int>>(3, {})
+  };
+
+  std::vector<std::pair<int, std::vector<int>>> trace2 {
+    std::pair<int, std::vector<int>>(1, {1,0,2}), 
+    std::pair<int, std::vector<int>>(1, {0,2}), 
+    std::pair<int, std::vector<int>>(2, {2}),
+    std::pair<int, std::vector<int>>(3, {})
+  };
+
+  std::vector<std::pair<int, std::vector<int>>> trace3 {
+    std::pair<int, std::vector<int>>(1, {1,7,7,1}), 
+    std::pair<int, std::vector<int>>(1, {7,7,1}), 
+    std::pair<int, std::vector<int>>(2, {7,1}),
+    std::pair<int, std::vector<int>>(3, {1}),
+    std::pair<int, std::vector<int>>(3, {})
+  };
+
+  std::vector<std::pair<int, std::vector<int>>> trace4 {
+    std::pair<int, std::vector<int>>(1, {1,3,5}), 
+    std::pair<int, std::vector<int>>(1, {3,5}), 
+    std::pair<int, std::vector<int>>(1, {5}),
+    std::pair<int, std::vector<int>>(2, {})
+  };
+
+  if(oracle(*zerOne, trace1)) 
+    true_++; 
+  else false_++;  
+
+  if(oracle(*zerOne, trace2)) 
+    true_++; 
+  else false_++;
+
+  if(oracle(*endFive, trace4)) 
+    std::cout << "true";  
+  else std::cout << "false";  
+
+  /* Task 29 and 31 */ 
+  TraceTree<int> tt1; 
+  tt1.printTT(tt1.explore(*endOne, {0,1}), 0);
+  return 0; 
 }
     
 /* Task 3 - Function that generates the Nth string of a given alphabet’s lexicographic order. */
