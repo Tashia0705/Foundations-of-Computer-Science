@@ -51,6 +51,8 @@ class TraceTree {
     TraceTree(State qi, bool result, int c) :
       qi(qi), result(result), c(c) {} 
 
+  /* Task 30 - Write a function that given an NFA and a string, returns a tree of 
+  all possible traces. */ 
   TraceTree explore(NFA<State> n, std::vector<State> w) {
     return expHelper(n, w, n.q0); 
   } 
@@ -65,7 +67,7 @@ class TraceTree {
       int ch = w[0];
       w.erase(w.begin()); 
       std::vector<State> vec = n.D(qi, ch);
-      for (int i = 0; i < vec.size(); i++)
+      for(int i = 0; i < vec.size(); i++)
         branch.push_back(expHelper(n, w, vec[i]));
       return TraceTree<State>(qi, n.F(qi), ch, branch);
     } 
@@ -87,8 +89,6 @@ class TraceTree {
     std::cout << "]";
   }
 };
-
-
 
 /* Task 10 -  a function that given a DFA and a string, determines if the string is accepted */
 template<typename State>
@@ -184,13 +184,14 @@ DFA<std::pair<State1, State2>> Intersection(DFA<State1> a, DFA<State2> b) {
   return *c; 
 }
 
-/* Task 18 - Write a function which takes two DFAs (X and Y) and returns whether every string accepted by X is also accepted by Y */
+/* Task 18 - Function which takes two DFAs (X and Y) and returns whether every string accepted by X is also accepted by Y */
 template<typename State1, typename State2>
 bool subset(DFA<State1> a, DFA<State2> b, std::vector<int> alph) {
   return !example(Intersection(complement(b), a), alph);  
 }
 
-/* Task 20 - Write a function which takes two DFAs (X and Y) and returns whether every string accepted by X is also accepted by Y and vice versa */
+/* Task 20 - Function which takes two DFAs (X and Y) and returns whether every string 
+accepted by X is also accepted by Y and vice versa */
 template<typename State1, typename State2>
 bool equals(DFA<State1> a, DFA<State2> b, std::vector<int> alph) {
   return subset(a, b, alph) && subset(b, a, alph); 
@@ -233,6 +234,146 @@ bool oracle(NFA<State> n, std::vector<std::pair<State, std::vector<State>>> trac
   }
   return true; 
 }
+
+/* Task 32 - Function that given an NFA and a string, determines if the string is accepted. */
+template<typename State> 
+bool backtracking(NFA<State> n, std::vector<int> w) {
+  return btHelper(n, w, n.q0); 
+}
+template<typename State> 
+bool btHelper(NFA<State> n, std::vector<int> w, State qi) {
+  std::vector<State> epsilon = n.D(qi, -1);
+  for(auto i : epsilon) {
+    if(btHelper(n, w, i)) 
+      return true; 
+  }
+  if(!w.empty()) {
+    int c = w[0];
+    std::vector<State> ch = n.D(qi,c); 
+    w.erase(w.begin()); 
+    for(auto i : ch) {
+      if(btHelper(n,w,i))
+      return true; 
+    }
+  }
+  else
+    return n.F(qi); 
+  return false;  
+}
+
+/* Task 33 - Write a function that takes two NFAs and returns a third
+NFA that accepts a string if either argument accepts it. */ 
+template<typename State1, typename State2> 
+NFA<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>> nUnion(NFA<State1> a, NFA<State2> b) {
+  std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> q0 = {0, {std::nullopt, std::nullopt}}; 
+  // Q (States)
+  std::function<bool(std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>)> Q = 
+    [=](std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> qi) {
+      if(qi == q0) 
+        return true; 
+      else if (qi.first == 1 && qi.second.first != std::nullopt)
+        return a.Q(qi.second.first.value()); 
+      else if (qi.first == 2 && qi.second.second != std::nullopt)
+        return b.Q(qi.second.second.value());
+      return false; 
+  }; 
+  // Delta
+  std::function<std::vector<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>>(
+  std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>, int)>
+  delta = [=](std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> qi, int c) {
+      
+    std::vector<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>> vec;
+    if(qi == q0 && c == -1) {
+      vec.push_back({1, {a.q0, std::nullopt}});
+      vec.push_back({2, {std::nullopt, b.q0}}); 
+    }
+    else if (qi.first == 1 && qi.second.first.has_value()) {
+      std::vector<State1> epsilon = a.D(qi.second.first.value(), -1);
+      for (auto i : epsilon)
+        vec.push_back({1, {i, std::nullopt}});
+      std::vector<State1> ch = a.D(qi.second.first.value(), c);
+      for (auto i : ch)
+        vec.push_back({1, {i, std::nullopt}});
+    }
+    else if (qi.first == 2 && qi.second.second.has_value()) {
+      std::vector<State2> epsilon = b.D(qi.second.second.value(), -1);
+      for (auto i : epsilon)
+        vec.push_back({2, {std::nullopt, i}});
+      std::vector<State2> ch = b.D(qi.second.second.value(), c);
+      for (auto i : ch)
+        vec.push_back({2, {std::nullopt, i}}); 
+    }
+    return vec; 
+  };
+  // F (accepting state)
+  std::function<bool(std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>)> F =
+    [=](std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> qi) {
+      if (qi.first == 1 && qi.second.first != std::nullopt)
+        return a.F(qi.second.first.value());
+      else if (qi.first == 2 && qi.second.second != std::nullopt)
+        return b.F(qi.second.second.value());
+      return false;
+  };
+  return NFA<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>>(Q, q0, delta, F);
+}
+/* Task 34 - function that takes two NFAs and returns a third NFA that accepts a string if it 
+can be broken into two pieces, one accepted by the first NFA and the other accepted by the second */
+template <typename State1, typename State2>
+NFA<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>> concatination(NFA<State1> a, NFA<State2> b) {
+  std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> q0 = {0, {std::nullopt, std::nullopt}};
+  // Q (States)
+  std::function<bool(std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>)> Q =
+    [=](std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> qi) {
+      if (qi == q0)
+        return true;
+      else if (qi.first == 1 && qi.second.first != std::nullopt) 
+        return a.Q(qi.second.first.value());
+      else if (qi.first == 2 && qi.second.second != std::nullopt)
+        return b.Q(qi.second.second.value());
+      return false;
+    };
+
+  // Delta 
+  std::function<std::vector<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>>(
+  std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>, int)>
+  delta = [=](std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> qi, int c) {
+    std::vector<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>> vec;
+    if (qi == q0 && -1)
+      vec.push_back({1, {a.q0, std::nullopt}});
+    else if (qi.first == 1 && qi.second.first.has_value()) {
+      std::vector<State1> epsilon = a.D(qi.second.first.value(), -1);
+      for (auto i : epsilon) {
+        vec.push_back({1, {i, std::nullopt}});
+        if(a.F((i))) vec.push_back({2, {std::nullopt, b.q0}});
+      }
+      std::vector<State1> ch = a.D(qi.second.first.value(), c);
+      for (auto i : ch) {
+        vec.push_back({1, {i, std::nullopt}});
+        if (a.F((i))) vec.push_back({2, {std::nullopt, b.q0}});
+      }
+    } 
+    else if (qi.first == 2 && qi.second.second.has_value()) {
+      std::vector<State2> epsilon = b.D(qi.second.second.value(), -1);
+      for (auto i : epsilon)
+        vec.push_back({2, {std::nullopt, i}});
+      std::vector<State2> ch = b.D(qi.second.second.value(), c);
+      for (auto i : ch)
+        vec.push_back({2, {std::nullopt, i}});
+    }
+    return vec;
+  };
+
+  // F (accepting states)
+  std::function<bool(std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>)> F =
+    [=](std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> qi) {
+      if (qi.first == 2 && qi.second.second != std::nullopt)
+        return b.F(qi.second.second.value());
+      return false;
+  };
+  return NFA<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>>(Q, q0, delta, F);
+}
+
+
 
 int main(int argc, const char * argv[]) {
   /* Task 1 - An alphabet is a finite set of numbers from 0 to some number N. I will use numbers 0 to 9.
@@ -425,7 +566,7 @@ int main(int argc, const char * argv[]) {
   std::cout << _true << " TRUE CASES\n";
 
   /* Task 25 - Write a dozen example NFAs. */
-  // 1. Example 1.27 from book 
+  // 1. Example 1.27 from book; sigma = {0,1}
   NFA<int> *bk127 = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2) || (x == 3) || (x == 4); }, 1,
     [](int qi, int c) {
@@ -444,7 +585,7 @@ int main(int argc, const char * argv[]) {
     [](int qi) { return qi = 4; }
   );
 
-  // 2. Example 1.31 from book
+  // 2. Example 1.31 from book; sigma = {0,1}
   NFA<int> *bk131 = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2) || (x == 3) || (x == 4); }, 1,
     [](int qi, int c) {
@@ -461,7 +602,7 @@ int main(int argc, const char * argv[]) {
     [](int qi) { return qi = 4; }
   );
 
-  // 3. Example 1.36 from book 
+  // 3. Example 1.36 from book; sigma = {1,2} 
   NFA<int> *bk136 = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
     [](int qi, int c) {
@@ -529,7 +670,7 @@ int main(int argc, const char * argv[]) {
     [](int qi) { return qi = 3; }
   ); 
   
-  // 7. Accepts strings whose second to last char is 1
+  // 7. Accepts strings whose second to last char is 1; sigma = {0,1}
   NFA<int> *seclast1 = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
     [](int qi, int c) {
@@ -545,7 +686,7 @@ int main(int argc, const char * argv[]) {
     [](int qi) {return qi = 3; }
   );
 
-  // 8. Accepts strings whose second to last char is 0
+  // 8. Accepts strings whose second to last char is 0; sigma = {0,1}
   NFA<int> *seclast0 = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
     [](int qi, int c) {
@@ -561,7 +702,7 @@ int main(int argc, const char * argv[]) {
     [](int qi) { return qi = 3; }
   );
 
-  // 9. Accepts strings 10 or 101 
+  // 9. Accepts strings 10 or 101; sigma = {0,1} 
   NFA<int> *nfa_x = new NFA<int> (
     [](int x) {return (x == 1) || (x == 2) || (x == 3); }, 1,
     [](int qi, int c) {
@@ -577,7 +718,7 @@ int main(int argc, const char * argv[]) {
     [](int qi) { return qi = 1; } 
   );
   
-  // 10. Accepts strings that have 77 
+  // 10. Accepts strings that have 77; sigma = {0...9} 
   NFA<int> *seven7 = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
     [](int qi, int c) {
@@ -594,7 +735,7 @@ int main(int argc, const char * argv[]) {
     [](int qi) { return qi = 3; }
   ); 
   
-  // 11. Accepts stringss ending in 1
+  // 11. Accepts stringss ending in 1; sigma = {0,1}
   NFA<int> *endOne = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2); }, 1,
     [](int qi , int c) {
@@ -609,7 +750,7 @@ int main(int argc, const char * argv[]) {
      [](int qi) { return qi = 2; }
   );
 
-  // 12. Accepts strings ending in 5
+  // 12. Accepts strings ending in 5; sigma = {0...9}
   NFA<int> *endFive = new NFA<int> (
     [](int x) { return (x == 1) || (x == 2); }, 1,
     [](int qi , int c) {
@@ -655,21 +796,200 @@ int main(int argc, const char * argv[]) {
     std::pair<int, std::vector<int>>(2, {})
   };
 
-  if(oracle(*zerOne, trace1)) 
-    true_++; 
-  else false_++;  
+  std::vector<std::pair<int, std::vector<int>>> bk127_1 {
+    std::pair<int, std::vector<int>>(1, {1,-1,1,0}), 
+    std::pair<int, std::vector<int>>(2, {-1,1,0}), 
+    std::pair<int, std::vector<int>>(3, {1,0}),
+    std::pair<int, std::vector<int>>(4, {0}),
+    std::pair<int, std::vector<int>>(4, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> bk127_2 {
+    std::pair<int, std::vector<int>>(1, {0,1,0,1}), 
+    std::pair<int, std::vector<int>>(1, {1,0,1}), 
+    std::pair<int, std::vector<int>>(2, {0,1}),
+    std::pair<int, std::vector<int>>(3, {1}),
+    std::pair<int, std::vector<int>>(4, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> bk127_3 {
+    std::pair<int, std::vector<int>>(1, {1,0,1}), 
+    std::pair<int, std::vector<int>>(2, {0,1}), 
+    std::pair<int, std::vector<int>>(3, {1}),
+    std::pair<int, std::vector<int>>(4, {})
+  };
 
-  if(oracle(*zerOne, trace2)) 
-    true_++; 
+  std::vector<std::pair<int, std::vector<int>>> bk131_1 {
+    std::pair<int, std::vector<int>>(1, {1,1,1}), 
+    std::pair<int, std::vector<int>>(2, {1,1}), 
+    std::pair<int, std::vector<int>>(3, {1}),
+    std::pair<int, std::vector<int>>(4, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> bk131_2 {
+    std::pair<int, std::vector<int>>(1, {1,0,1,0}), 
+    std::pair<int, std::vector<int>>(1, {0,1,0}), 
+    std::pair<int, std::vector<int>>(1, {1,0}),
+    std::pair<int, std::vector<int>>(1, {0}),
+    std::pair<int, std::vector<int>>(1, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> bk131_3 {
+    std::pair<int, std::vector<int>>(1, {1,1,0}), 
+    std::pair<int, std::vector<int>>(2, {1,0}), 
+    std::pair<int, std::vector<int>>(3, {0}),
+    std::pair<int, std::vector<int>>(4, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> bk136_1 {
+    std::pair<int, std::vector<int>>(1, {2,1,2,1}), 
+    std::pair<int, std::vector<int>>(2, {1,2,1}), 
+    std::pair<int, std::vector<int>>(2, {2,1}),
+    std::pair<int, std::vector<int>>(3, {1}),
+    std::pair<int, std::vector<int>>(1, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> bk136_2 {
+    std::pair<int, std::vector<int>>(1, {-1,1}), 
+    std::pair<int, std::vector<int>>(3, {1}), 
+    std::pair<int, std::vector<int>>(1, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> bk136_3 {
+    std::pair<int, std::vector<int>>(1, {2,1,1}), 
+    std::pair<int, std::vector<int>>(2, {1,1}), 
+    std::pair<int, std::vector<int>>(3, {1}),
+    std::pair<int, std::vector<int>>(1, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> zerOne_1 {
+    std::pair<int, std::vector<int>>(1, {1,0,0,1}), 
+    std::pair<int, std::vector<int>>(1, {0,0,1}), 
+    std::pair<int, std::vector<int>>(1, {0,1}),
+    std::pair<int, std::vector<int>>(2, {1}),
+    std::pair<int, std::vector<int>>(3, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> zerOne_2 {
+    std::pair<int, std::vector<int>>(1, {0,0,1}), 
+    std::pair<int, std::vector<int>>(1, {0,1}), 
+    std::pair<int, std::vector<int>>(2, {1}),
+    std::pair<int, std::vector<int>>(3, {}) 
+  };
+  std::vector<std::pair<int, std::vector<int>>> oneOne_1 {
+    std::pair<int, std::vector<int>>(1, {1,0,1,1}), 
+    std::pair<int, std::vector<int>>(1, {0,1,1}), 
+    std::pair<int, std::vector<int>>(1, {1,1}),
+    std::pair<int, std::vector<int>>(2, {1}),
+    std::pair<int, std::vector<int>>(3, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> oneOne_2 {
+    std::pair<int, std::vector<int>>(1, {0,1,1}), 
+    std::pair<int, std::vector<int>>(1, {1,1}), 
+    std::pair<int, std::vector<int>>(2, {1}),
+    std::pair<int, std::vector<int>>(3, {}) 
+  };
+  std::vector<std::pair<int, std::vector<int>>> oneOne_3 {
+    std::pair<int, std::vector<int>>(1, {0,0,1,1}), 
+    std::pair<int, std::vector<int>>(1, {0,1,1}), 
+    std::pair<int, std::vector<int>>(1, {1,1}),
+    std::pair<int, std::vector<int>>(2, {1}),
+    std::pair<int, std::vector<int>>(3, {}) 
+  };
+  std::vector<std::pair<int, std::vector<int>>> zerZero_1 {
+    std::pair<int, std::vector<int>>(1, {0,0,1,1}), 
+    std::pair<int, std::vector<int>>(1, {0,1,1}), 
+    std::pair<int, std::vector<int>>(1, {1,1}),
+    std::pair<int, std::vector<int>>(2, {1}),
+    std::pair<int, std::vector<int>>(3, {}) 
+  };
+
+  // NFA  bk127
+  if(oracle(*bk127, bk127_1)) true_++;   
+  else false_++;  
+  if(oracle(*bk127, bk127_2)) true_++;   
+  else false_++;
+  if(oracle(*bk127, bk127_3)) true_++;   
+  else false_++; 
+  if(oracle(*bk127, trace1)) true_++;   
+  else false_++; 
+  if(oracle(*bk127, trace2)) true_++;   
+  else false_++; 
+  if(oracle(*bk127, trace3)) true_++;   
   else false_++;
 
-  if(oracle(*endFive, trace4)) 
-    std::cout << "true";  
-  else std::cout << "false";  
+  // NFA bk131
+  if(oracle(*bk131, bk131_1)) true_++;   
+  else false_++;
+  if(oracle(*bk131, bk131_3)) true_++;    
+  else false_++; 
+  if(oracle(*bk131, bk127_3)) true_++;   
+  else false_++; 
+  if(oracle(*bk131, trace1)) true_++;   
+  else false_++; 
+  if(oracle(*bk131, trace2)) true_++;   
+  else false_++; 
+  if(oracle(*bk131, trace3)) true_++;   
+  else false_++;
+
+  // NFA bk136
+  if(oracle(*bk136, bk136_1)) true_++;   
+  else false_++;
+  if(oracle(*bk136, bk136_2)) true_++;   
+  else false_++;
+  if(oracle(*bk136, bk136_3))  true_++;   
+  else false_++;
+  if(oracle(*bk136, trace1)) true_++;   
+  else false_++; 
+  if(oracle(*bk136, trace2)) true_++;   
+  else false_++; 
+  if(oracle(*bk136, trace3)) true_++;   
+  else false_++; 
+
+  // NFA zerOne
+  if(oracle(*zerOne, trace1)) true_++;   
+  else false_++; 
+  if(oracle(*zerOne, zerOne_1)) true_++;   
+  else false_++; 
+  if(oracle(*zerOne, zerOne_2)) true_++;   
+  else false_++;  
+  if(oracle(*zerOne, trace2)) true_++;   
+  else false_++; 
+  if(oracle(*zerOne, trace3)) true_++;    
+  else false_++; 
+  if(oracle(*zerOne, trace4)) true_++;   
+  else false_++;  
+
+  // NFA oneOne
+  if(oracle(*oneOne, oneOne_1)) true_++;   
+  else false_++;
+  if(oracle(*oneOne, oneOne_2)) true_++;    
+  else false_++;
+  if(oracle(*oneOne, oneOne_3)) true_++;    
+  else false_++;
+  if(oracle(*oneOne, bk131_1)) true_++;    
+  else false_++;
+  if(oracle(*oneOne, trace3)) true_++;    
+  else false_++; 
+  if(oracle(*oneOne, trace4)) true_++;   
+  else false_++; 
+
+// NFA zerZero
+
+
+  std::cout << true_ << " tests passed\n"; 
+  std::cout << false_ << " tests failed\n";  
 
   /* Task 29 and 31 */ 
   TraceTree<int> tt1; 
   tt1.printTT(tt1.explore(*endOne, {0,1}), 0);
+
+  /* Testing Backtracking function */
+  if(backtracking(*zerOne, {0001}))
+    std::cout << "\nAccepted\n";
+  else std::cout << "\nNot accepted\n";
+
+  /* Testing Union Function */
+  if(backtracking(nUnion(*zerOne, *oneOne), {1,0,1}))
+    std::cout << "union = true\n";
+  else std::cout << "union = false\n";
+  /* Testing Concatination Function */
+  if(backtracking(concatination(*zerOne, *oneOne), {0,0,0,1}))
+    std::cout << "concatination = true\n";
+  else std::cout << "concatination = false\n";
+
+
   return 0; 
 }
     
