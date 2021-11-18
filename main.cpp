@@ -53,12 +53,12 @@ class TraceTree {
 
   /* Task 30 - Write a function that given an NFA and a string, returns a tree of 
   all possible traces. */ 
-  TraceTree explore(NFA<State> n, std::vector<State> w) {
+  TraceTree explore(NFA<State> n, std::vector<int> w) {
     return expHelper(n, w, n.q0); 
   } 
 
-  TraceTree expHelper(NFA<State> n, std::vector<State> w, State qi) {
-    std::vector<TraceTree<State>> branch;
+  TraceTree expHelper(NFA<State> n, std::vector<int> w, State qi) {
+    std::vector<TraceTree<State>> branch; 
     std::vector<State> epsilon = n.D(qi, -1);
     for(unsigned int i = 0; i < epsilon.size(); i++) 
       branch.push_back(expHelper(n, w, epsilon[i]));
@@ -71,7 +71,7 @@ class TraceTree {
         branch.push_back(expHelper(n, w, vec[i]));
       return TraceTree<State>(qi, n.F(qi), ch, branch);
     } 
-    return TraceTree<State>(qi, n.F(qi), 0, branch); // needs to be w[0]
+    return TraceTree<State>(qi, n.F(qi), -1, branch);  
   }
 
   void printTT(TraceTree tt, int count) {
@@ -79,14 +79,12 @@ class TraceTree {
     for(int i = 0; i < count; i++) 
       std::cout << "\t"; 
     count++; 
-    std::cout << "[ State: q" << tt.qi << ", NextChar: " << tt.c;
+    std::cout << "State: q" << tt.qi << ", NextChar: " << tt.c;
     for(auto i : tt.branch)
       printTT(i, count); 
     std::cout << std::endl;
     for (int i = 1; i < count; i++)
       std::cout << "\t";
-
-    std::cout << "]";
   }
 };
 
@@ -658,7 +656,7 @@ int main(int argc, const char * argv[]) {
     [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
     [](int qi, int c) {
       std::vector<int> vec; 
-      if(qi == 1 && c == 0) vec.push_back(1); 
+      if(qi == 1 && c == 1) vec.push_back(1); 
       if(qi == 1 && c == 0) {
         vec.push_back(1);
         vec.push_back(2); 
@@ -889,11 +887,87 @@ int main(int argc, const char * argv[]) {
   };
   std::vector<std::pair<int, std::vector<int>>> zerZero_1 {
     std::pair<int, std::vector<int>>(1, {0,0,1,1}), 
-    std::pair<int, std::vector<int>>(1, {0,1,1}), 
-    std::pair<int, std::vector<int>>(1, {1,1}),
-    std::pair<int, std::vector<int>>(2, {1}),
+    std::pair<int, std::vector<int>>(2, {0,1,1}), 
+    std::pair<int, std::vector<int>>(3, {1,1}),
+    std::pair<int, std::vector<int>>(3, {1}),
     std::pair<int, std::vector<int>>(3, {}) 
   };
+  std::vector<std::pair<int, std::vector<int>>> zerZero_2 {
+    std::pair<int, std::vector<int>>(1, {1,0,0}), 
+    std::pair<int, std::vector<int>>(1, {0,0}), 
+    std::pair<int, std::vector<int>>(2, {0}),
+    std::pair<int, std::vector<int>>(3, {})
+  };
+   std::vector<std::pair<int, std::vector<int>>> zerZero_3 {
+    std::pair<int, std::vector<int>>(1, {0,0}), 
+    std::pair<int, std::vector<int>>(2, {0}), 
+    std::pair<int, std::vector<int>>(3, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> seclast1_1 {
+    std::pair<int, std::vector<int>>(1, {1,0,1,0}), 
+    std::pair<int, std::vector<int>>(1, {0,1,0}), 
+    std::pair<int, std::vector<int>>(1, {1,0}),
+    std::pair<int, std::vector<int>>(2, {0}),
+    std::pair<int, std::vector<int>>(3, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> seclast1_2 {
+    std::pair<int, std::vector<int>>(1, {1,0}), 
+    std::pair<int, std::vector<int>>(2, {0}), 
+    std::pair<int, std::vector<int>>(3, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> nfax_1 {
+    std::pair<int, std::vector<int>>(1, {1,0}), 
+    std::pair<int, std::vector<int>>(2, {0}), 
+    std::pair<int, std::vector<int>>(1, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> nfax_2 {
+    std::pair<int, std::vector<int>>(1, {1,0,1}), 
+    std::pair<int, std::vector<int>>(2, {0,1}), 
+    std::pair<int, std::vector<int>>(3, {1}),
+    std::pair<int, std::vector<int>>(1, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> seven7_1 {
+    std::pair<int, std::vector<int>>(1, {7,7}), 
+    std::pair<int, std::vector<int>>(2, {7}), 
+    std::pair<int, std::vector<int>>(3, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> seven7_2 {
+    std::pair<int, std::vector<int>>(1, {4,7,7}), 
+    std::pair<int, std::vector<int>>(1, {7,7}), 
+    std::pair<int, std::vector<int>>(2, {7}),
+    std::pair<int, std::vector<int>>(3, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> endOne_1 {
+    std::pair<int, std::vector<int>>(1, {1}), 
+    std::pair<int, std::vector<int>>(2, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> endOne_2 {
+    std::pair<int, std::vector<int>>(1, {1,0,1}), 
+    std::pair<int, std::vector<int>>(1, {0,1}),
+    std::pair<int, std::vector<int>>(1, {1}),
+    std::pair<int, std::vector<int>>(2, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> endOne_3 {
+    std::pair<int, std::vector<int>>(1, {1,1}), 
+    std::pair<int, std::vector<int>>(1, {1}),
+    std::pair<int, std::vector<int>>(2, {}),
+  };
+  std::vector<std::pair<int, std::vector<int>>> endFive_1 {
+    std::pair<int, std::vector<int>>(1, {5}), 
+    std::pair<int, std::vector<int>>(2, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> endFive_2 {
+    std::pair<int, std::vector<int>>(1, {3,4,5}), 
+    std::pair<int, std::vector<int>>(1, {4,5}),
+    std::pair<int, std::vector<int>>(1, {5}),
+    std::pair<int, std::vector<int>>(2, {})
+  };
+  std::vector<std::pair<int, std::vector<int>>> endFive_3 {
+    std::pair<int, std::vector<int>>(1, {7,5}), 
+    std::pair<int, std::vector<int>>(1, {5}),
+    std::pair<int, std::vector<int>>(2, {}),
+  };
+  
 
   // NFA  bk127
   if(oracle(*bk127, bk127_1)) true_++;   
@@ -966,25 +1040,118 @@ int main(int argc, const char * argv[]) {
   else false_++; 
 
 // NFA zerZero
+if(oracle(*zerZero, zerZero_1)) true_++;   
+else false_++;
+if(oracle(*zerZero, zerZero_2)) true_++;   
+else false_++;
+if(oracle(*zerZero, zerZero_3)) true_++;   
+else false_++;
+if(oracle(*zerZero, oneOne_1)) true_++;   
+else false_++;
+if(oracle(*zerZero, oneOne_2)) true_++;    
+else false_++;
+if(oracle(*zerZero, oneOne_3)) true_++;    
+else false_++;
 
+// NFA secLast1 
+if(oracle(*seclast1, oneOne_2)) true_++;   
+else false_++;
+if(oracle(*seclast1, seclast1_1)) true_++;   
+else false_++;
+if(oracle(*seclast1, seclast1_2)) true_++;
+else false_++;
+if(oracle(*seclast1, trace1)) true_++;   
+else false_++; 
+if(oracle(*seclast1, trace2)) true_++;   
+else false_++; 
+if(oracle(*seclast1, trace3)) true_++;   
+else false_++; 
 
-  std::cout << true_ << " tests passed\n"; 
-  std::cout << false_ << " tests failed\n";  
+// NFA secLast0
+if(oracle(*seclast0, zerZero_2)) true_++;    
+else false_++; 
+if(oracle(*seclast0, zerZero_3)) true_++;    
+else false_++; 
+if(oracle(*seclast0, trace1)) true_++;    
+else false_++; 
+if(oracle(*seclast0, trace2)) true_++;    
+else false_++; 
+if(oracle(*seclast0, trace3)) true_++;    
+else false_++; 
+if(oracle(*seclast0, bk127_3)) true_++;    
+else false_++; 
 
-  /* Task 29 and 31 */ 
+// NFA nfa_x
+if(oracle(*nfa_x, nfax_1)) true_++;    
+else false_++; 
+if(oracle(*nfa_x, nfax_2)) true_++; 
+else false_++; 
+if(oracle(*nfa_x, trace1)) true_++;    
+else false_++; 
+if(oracle(*nfa_x, trace2)) true_++;    
+else false_++; 
+if(oracle(*nfa_x, trace3)) true_++;    
+else false_++; 
+if(oracle(*nfa_x, bk127_3)) true_++;    
+else false_++; 
+
+// NFA seven7
+if(oracle(*seven7, seven7_1)) true_++;    
+else false_++; 
+if(oracle(*seven7, seven7_2)) true_++;    
+else false_++;
+if(oracle(*seven7, trace3)) true_++;    
+else false_++; 
+if(oracle(*seven7, trace1)) true_++;    
+else false_++; 
+if(oracle(*seven7, trace2)) true_++;    
+else false_++; 
+if(oracle(*seven7, bk127_3)) true_++;    
+else false_++; 
+
+// NFA endOne
+if(oracle(*endOne, endOne_1)) true_++;    
+else false_++;
+if(oracle(*endOne, endOne_2)) true_++;   
+else false_++;
+if(oracle(*endOne, endOne_3)) true_++;     
+else false_++;
+if(oracle(*endOne, trace3)) true_++;    
+else false_++; 
+if(oracle(*endOne, trace1)) true_++;    
+else false_++; 
+if(oracle(*endOne, trace2)) true_++;    
+else false_++; 
+
+// NFA endFive
+if(oracle(*endFive, endFive_1)) true_++;    
+else false_++; 
+if(oracle(*endFive, endFive_2)) true_++;    
+else false_++; 
+if(oracle(*endFive, endFive_3)) true_++;    
+else false_++; 
+if(oracle(*endFive, endOne_1)) true_++;    
+else false_++;
+if(oracle(*endFive, endOne_2)) true_++;   
+else false_++;
+if(oracle(*endFive, endOne_3)) true_++;     
+else false_++; 
+
+std::cout << "\nTesting Traces of NFAs: \n"; 
+std::cout << true_ << " tests passed\n"; 
+std::cout << false_ << " tests failed\n";  
+
+  /* Task 29 and 31  */
   TraceTree<int> tt1; 
-  tt1.printTT(tt1.explore(*endOne, {0,1}), 0);
-
-  /* Testing Backtracking function */
-  if(backtracking(*zerOne, {0001}))
-    std::cout << "\nAccepted\n";
-  else std::cout << "\nNot accepted\n";
+  tt1.printTT(tt1.explore(*zerOne, {0,1}), 0); 
 
   /* Testing Union Function */
+  std::cout << "Testing Union Function: \n"; 
   if(backtracking(nUnion(*zerOne, *oneOne), {1,0,1}))
-    std::cout << "union = true\n";
-  else std::cout << "union = false\n";
-  /* Testing Concatination Function */
+    std::cout << " True\n";
+  else std::cout << " False\n";
+  
+  /* Task 35 - Testing Concatination Function */
   if(backtracking(concatination(*zerOne, *oneOne), {0,0,0,1}))
     std::cout << "concatination = true\n";
   else std::cout << "concatination = false\n";
