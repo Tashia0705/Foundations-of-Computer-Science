@@ -1152,9 +1152,37 @@ std::cout << false_ << " tests failed\n";
   else std::cout << " False\n";
   
   /* Task 35 - Testing Concatination Function */
-  if(backtracking(concatination(*zerOne, *oneOne), {0,0,0,1}))
-    std::cout << "concatination = true\n";
-  else std::cout << "concatination = false\n";
+  std::cout << "\nTesting Concatination Function: \n";
+  int pass = 0; int fail = 0; 
+  if(backtracking(concatination(*zerOne, *oneOne), {0,1,1,1})) pass++; 
+  else fail++;
+  if(backtracking(concatination(*bk127, *oneOne), {1,-1,1,1,1})) pass++; 
+  else fail++;
+  if(backtracking(concatination(*bk131, *bk127), {1,0,1,1,0,0})) pass++; 
+  else fail++;
+  if(backtracking(concatination(*bk136, *bk131), {2,1,1,1,1,1})) pass++; 
+  else fail++; 
+  if(backtracking(concatination(*zerZero, *oneOne), {0,0,1,1})) pass++; 
+  else fail++;
+  if(backtracking(concatination(*seclast1, *seclast0), {1,0,0,1})) pass++; 
+  else fail++;
+  if(backtracking(concatination(*nfa_x, *seven7), {7})) pass++; 
+  else fail++;
+  if(backtracking(concatination(*endOne, *endFive), {5})) pass++;  
+  else fail++;
+  if(backtracking(concatination(*bk127, *oneOne), {4,1,1})) pass++; 
+  else fail++;
+  if(backtracking(concatination(*bk136, *bk131), {2,2,2,1,1,1})) pass++; 
+  else fail++; 
+  if(backtracking(concatination(*oneOne, *endOne), {2,3})) pass++; 
+  else fail++;
+  if(backtracking(concatination(*nfa_x, *endOne), {0,1})) pass++; 
+  else fail++;
+  
+
+  std::cout << pass << " tests passed\n";
+  std::cout << fail << " tests failed\n"; 
+
 
 
   return 0; 
