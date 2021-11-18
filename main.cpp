@@ -197,11 +197,11 @@ bool equals(DFA<State1> a, DFA<State2> b, std::vector<int> alph) {
 
 /* Task 24 - Write a (trivial) function that converts DFAs into NFAs. */
 template<typename State>
-DFA<State> convert(DFA<State> d) {
+NFA<State> convert(DFA<State> d) {
   auto dPrime = [=](State q, int c) { 
     if(c == -1) return std::vector<State> {}; // -1 is epsilon 
-    else return std::vector<State> {d.D(q, c)}; };
-  return DFA<State>(d.Q,d.q0,dPrime,d.F);
+    else return std::vector<State> { d.D(q, c)}; };
+  return NFA<State>(d.Q,d.q0,dPrime,d.F);
 }
 
 /* Task 27 - Oracle function */ 
@@ -336,7 +336,7 @@ NFA<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>> con
   std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>, int)>
   delta = [=](std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>> qi, int c) {
     std::vector<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>> vec;
-    if (qi == q0 && -1)
+    if (qi == q0 && c == -1)
       vec.push_back({1, {a.q0, std::nullopt}});
     else if (qi.first == 1 && qi.second.first.has_value()) {
       std::vector<State1> epsilon = a.D(qi.second.first.value(), -1);
@@ -560,8 +560,11 @@ int main(int argc, const char * argv[]) {
   else 
     _false++;   
   std::cout << "Testing Equality Function: \n"; 
-  std::cout << _false << " FALSE CASES \n";
-  std::cout << _true << " TRUE CASES\n";
+  std::cout << _false << " tests passed \n";
+  std::cout << _true << " tests failed\n";
+
+  /* Convert DFA to NFA*/
+  convert(*evenNum); 
 
   /* Task 25 - Write a dozen example NFAs. */
   // 1. Example 1.27 from book; sigma = {0,1}
@@ -721,7 +724,7 @@ int main(int argc, const char * argv[]) {
     [](int x) { return (x == 1) || (x == 2) || (x == 3); }, 1,
     [](int qi, int c) {
       std::vector<int> vec; 
-      if(qi == 1 && c != 7) vec.push_back(1); 
+      if(qi == 1) vec.push_back(1); 
       if(qi == 1 && c == 7) {
         vec.push_back(1);
         vec.push_back(2); 
@@ -1039,118 +1042,168 @@ int main(int argc, const char * argv[]) {
   if(oracle(*oneOne, trace4)) true_++;   
   else false_++; 
 
-// NFA zerZero
-if(oracle(*zerZero, zerZero_1)) true_++;   
-else false_++;
-if(oracle(*zerZero, zerZero_2)) true_++;   
-else false_++;
-if(oracle(*zerZero, zerZero_3)) true_++;   
-else false_++;
-if(oracle(*zerZero, oneOne_1)) true_++;   
-else false_++;
-if(oracle(*zerZero, oneOne_2)) true_++;    
-else false_++;
-if(oracle(*zerZero, oneOne_3)) true_++;    
-else false_++;
+  // NFA zerZero
+  if(oracle(*zerZero, zerZero_1)) true_++;   
+  else false_++;
+  if(oracle(*zerZero, zerZero_2)) true_++;   
+  else false_++;
+  if(oracle(*zerZero, zerZero_3)) true_++;   
+  else false_++;
+  if(oracle(*zerZero, oneOne_1)) true_++;   
+  else false_++;
+  if(oracle(*zerZero, oneOne_2)) true_++;    
+  else false_++;
+  if(oracle(*zerZero, oneOne_3)) true_++;    
+  else false_++;
 
-// NFA secLast1 
-if(oracle(*seclast1, oneOne_2)) true_++;   
-else false_++;
-if(oracle(*seclast1, seclast1_1)) true_++;   
-else false_++;
-if(oracle(*seclast1, seclast1_2)) true_++;
-else false_++;
-if(oracle(*seclast1, trace1)) true_++;   
-else false_++; 
-if(oracle(*seclast1, trace2)) true_++;   
-else false_++; 
-if(oracle(*seclast1, trace3)) true_++;   
-else false_++; 
+  // NFA secLast1 
+  if(oracle(*seclast1, oneOne_2)) true_++;   
+  else false_++;
+  if(oracle(*seclast1, seclast1_1)) true_++;   
+  else false_++;
+  if(oracle(*seclast1, seclast1_2)) true_++;
+  else false_++;
+  if(oracle(*seclast1, trace1)) true_++;   
+  else false_++; 
+  if(oracle(*seclast1, trace2)) true_++;   
+  else false_++; 
+  if(oracle(*seclast1, trace3)) true_++;   
+  else false_++; 
 
-// NFA secLast0
-if(oracle(*seclast0, zerZero_2)) true_++;    
-else false_++; 
-if(oracle(*seclast0, zerZero_3)) true_++;    
-else false_++; 
-if(oracle(*seclast0, trace1)) true_++;    
-else false_++; 
-if(oracle(*seclast0, trace2)) true_++;    
-else false_++; 
-if(oracle(*seclast0, trace3)) true_++;    
-else false_++; 
-if(oracle(*seclast0, bk127_3)) true_++;    
-else false_++; 
+  // NFA secLast0
+  if(oracle(*seclast0, zerZero_2)) true_++;    
+  else false_++; 
+  if(oracle(*seclast0, zerZero_3)) true_++;    
+  else false_++; 
+  if(oracle(*seclast0, trace1)) true_++;    
+  else false_++; 
+  if(oracle(*seclast0, trace2)) true_++;    
+  else false_++; 
+  if(oracle(*seclast0, trace3)) true_++;    
+  else false_++; 
+  if(oracle(*seclast0, bk127_3)) true_++;    
+  else false_++; 
 
-// NFA nfa_x
-if(oracle(*nfa_x, nfax_1)) true_++;    
-else false_++; 
-if(oracle(*nfa_x, nfax_2)) true_++; 
-else false_++; 
-if(oracle(*nfa_x, trace1)) true_++;    
-else false_++; 
-if(oracle(*nfa_x, trace2)) true_++;    
-else false_++; 
-if(oracle(*nfa_x, trace3)) true_++;    
-else false_++; 
-if(oracle(*nfa_x, bk127_3)) true_++;    
-else false_++; 
+  // NFA nfa_x
+  if(oracle(*nfa_x, nfax_1)) true_++;    
+  else false_++; 
+  if(oracle(*nfa_x, nfax_2)) true_++; 
+  else false_++; 
+  if(oracle(*nfa_x, trace1)) true_++;    
+  else false_++; 
+  if(oracle(*nfa_x, trace2)) true_++;    
+  else false_++; 
+  if(oracle(*nfa_x, trace3)) true_++;    
+  else false_++; 
+  if(oracle(*nfa_x, bk127_3)) true_++;    
+  else false_++; 
 
-// NFA seven7
-if(oracle(*seven7, seven7_1)) true_++;    
-else false_++; 
-if(oracle(*seven7, seven7_2)) true_++;    
-else false_++;
-if(oracle(*seven7, trace3)) true_++;    
-else false_++; 
-if(oracle(*seven7, trace1)) true_++;    
-else false_++; 
-if(oracle(*seven7, trace2)) true_++;    
-else false_++; 
-if(oracle(*seven7, bk127_3)) true_++;    
-else false_++; 
+  // NFA seven7
+  if(oracle(*seven7, seven7_1)) true_++;    
+  else false_++; 
+  if(oracle(*seven7, seven7_2)) true_++;    
+  else false_++;
+  if(oracle(*seven7, trace3)) true_++;    
+  else false_++; 
+  if(oracle(*seven7, trace1)) true_++;    
+  else false_++; 
+  if(oracle(*seven7, trace2)) true_++;    
+  else false_++; 
+  if(oracle(*seven7, bk127_3)) true_++;    
+  else false_++; 
 
-// NFA endOne
-if(oracle(*endOne, endOne_1)) true_++;    
-else false_++;
-if(oracle(*endOne, endOne_2)) true_++;   
-else false_++;
-if(oracle(*endOne, endOne_3)) true_++;     
-else false_++;
-if(oracle(*endOne, trace3)) true_++;    
-else false_++; 
-if(oracle(*endOne, trace1)) true_++;    
-else false_++; 
-if(oracle(*endOne, trace2)) true_++;    
-else false_++; 
+  // NFA endOne
+  if(oracle(*endOne, endOne_1)) true_++;    
+  else false_++;
+  if(oracle(*endOne, endOne_2)) true_++;   
+  else false_++;
+  if(oracle(*endOne, endOne_3)) true_++;     
+  else false_++;
+  if(oracle(*endOne, trace3)) true_++;    
+  else false_++; 
+  if(oracle(*endOne, trace1)) true_++;    
+  else false_++; 
+  if(oracle(*endOne, trace2)) true_++;    
+  else false_++; 
 
-// NFA endFive
-if(oracle(*endFive, endFive_1)) true_++;    
-else false_++; 
-if(oracle(*endFive, endFive_2)) true_++;    
-else false_++; 
-if(oracle(*endFive, endFive_3)) true_++;    
-else false_++; 
-if(oracle(*endFive, endOne_1)) true_++;    
-else false_++;
-if(oracle(*endFive, endOne_2)) true_++;   
-else false_++;
-if(oracle(*endFive, endOne_3)) true_++;     
-else false_++; 
+  // NFA endFive
+  if(oracle(*endFive, endFive_1)) true_++;    
+  else false_++; 
+  if(oracle(*endFive, endFive_2)) true_++;    
+  else false_++; 
+  if(oracle(*endFive, endFive_3)) true_++;    
+  else false_++; 
+  if(oracle(*endFive, endOne_1)) true_++;    
+  else false_++;
+  if(oracle(*endFive, endOne_2)) true_++;   
+  else false_++;
+  if(oracle(*endFive, endOne_3)) true_++;     
+  else false_++; 
 
-std::cout << "\nTesting Traces of NFAs: \n"; 
-std::cout << true_ << " tests passed\n"; 
-std::cout << false_ << " tests failed\n";  
+  std::cout << "\nTesting Traces of NFAs: \n"; 
+  std::cout << true_ << " tests passed\n"; 
+  std::cout << false_ << " tests failed\n";  
 
   /* Task 29 and 31  */
-  TraceTree<int> tt1; 
+  std::cout << "\nTesting Tasks 29 & 31: \n"; 
+  TraceTree<int> tt1;
+  std::cout << "Testing NFA bk127: \n";
+  tt1.printTT(tt1.explore(*bk127, {1,0,1}), 0);
+  tt1.printTT(tt1.explore(*bk127, {0,1,0,1}), 0);
+  tt1.printTT(tt1.explore(*bk127, {1,1}), 0); 
+  tt1.printTT(tt1.explore(*bk127, {1,1,0}), 0);
+  std::cout << "Testing NFA bk131: \n";
+  tt1.printTT(tt1.explore(*bk131, {1,1,1}), 0);
+  tt1.printTT(tt1.explore(*bk131, {1,0,1,0}), 0);
+  tt1.printTT(tt1.explore(*bk131, {1,1,0}), 0);
+  tt1.printTT(tt1.explore(*bk131, {1,0}), 0);
+  std::cout << "Testing NFA bk136: \n";
+  tt1.printTT(tt1.explore(*bk136, {2,1,1}), 0);
+  tt1.printTT(tt1.explore(*bk136, {2,1,2,1}), 0);
+  tt1.printTT(tt1.explore(*bk136, {2,2}), 0);
+  tt1.printTT(tt1.explore(*bk136, {2,1}), 0);
+  std::cout << "Testing NFA zerOne: \n"; 
   tt1.printTT(tt1.explore(*zerOne, {0,1}), 0); 
+  tt1.printTT(tt1.explore(*zerOne, {1,0,0,1}), 0); 
+  tt1.printTT(tt1.explore(*zerOne, {1,1}), 0);
+  tt1.printTT(tt1.explore(*zerOne, {0,0}), 0); 
+  std::cout << "Testing NFA oneOne: \n"; 
+  tt1.printTT(tt1.explore(*oneOne, {0,1}), 0); 
+  tt1.printTT(tt1.explore(*oneOne, {0,1,1,0}), 0); 
+  tt1.printTT(tt1.explore(*oneOne, {1,1}), 0);
+  tt1.printTT(tt1.explore(*oneOne, {0,0}), 0); 
+  std::cout << "Testing NFA zerZero: \n"; 
+  tt1.printTT(tt1.explore(*zerZero, {0,1,0,0}), 0); 
+  tt1.printTT(tt1.explore(*zerZero, {1,0,0,1}), 0); 
+  tt1.printTT(tt1.explore(*zerZero, {1,1}), 0);
+  tt1.printTT(tt1.explore(*zerZero, {1,0}), 0); 
+  std::cout << "Testing NFA seclast1: \n"; 
+  tt1.printTT(tt1.explore(*seclast1, {0,1,0}), 0); 
+  tt1.printTT(tt1.explore(*seclast1, {0,0,1}), 0); 
+  tt1.printTT(tt1.explore(*seclast1, {1,1}), 0);
+  tt1.printTT(tt1.explore(*seclast1, {0,1}), 0);
+  std::cout << "Testing NFA seclast0: \n"; 
+  tt1.printTT(tt1.explore(*seclast0, {0,0,1}), 0); 
+  tt1.printTT(tt1.explore(*seclast0, {0,1,1}), 0); 
+  tt1.printTT(tt1.explore(*seclast0, {0,0}), 0);
+  tt1.printTT(tt1.explore(*seclast0, {1,0}), 0);
+  std::cout << "Testing NFA nfa_x: \n"; 
+  tt1.printTT(tt1.explore(*nfa_x, {1,0}), 0); 
+  tt1.printTT(tt1.explore(*nfa_x, {1,0,1}), 0); 
+  tt1.printTT(tt1.explore(*nfa_x, {0,0}), 0);
+  tt1.printTT(tt1.explore(*nfa_x, {1,1,0}), 0);
+  std::cout << "Testing NFA endOne: \n"; 
+  tt1.printTT(tt1.explore(*endOne, {1,0}), 0); 
+  tt1.printTT(tt1.explore(*endOne, {1,0,1}), 0); 
+  tt1.printTT(tt1.explore(*endOne, {0,0}), 0);
+  tt1.printTT(tt1.explore(*endOne, {1,1,1}), 0);
 
   /* Testing Union Function */
   std::cout << "Testing Union Function: \n"; 
   if(backtracking(nUnion(*zerOne, *oneOne), {1,0,1}))
-    std::cout << " True\n";
-  else std::cout << " False\n";
-  
+    std::cout << "True\n";
+  else std::cout << "False\n";
+
   /* Task 35 - Testing Concatination Function */
   std::cout << "\nTesting Concatination Function: \n";
   int pass = 0; int fail = 0; 
@@ -1178,12 +1231,8 @@ std::cout << false_ << " tests failed\n";
   else fail++;
   if(backtracking(concatination(*nfa_x, *endOne), {0,1})) pass++; 
   else fail++;
-  
-
   std::cout << pass << " tests passed\n";
   std::cout << fail << " tests failed\n"; 
-
-
 
   return 0; 
 }
