@@ -370,8 +370,65 @@ NFA<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>> con
   };
   return NFA<std::pair<int, std::pair<std::optional<State1>, std::optional<State2>>>>(Q, q0, delta, F);
 }
-
-
+/* Task 38 - Write a function which converts an NFA into a DFA that accepts the same language. */
+template <typename State>
+DFA<std::vector<State>> convertNfa(NFA<State> n) {
+  auto nQ = n.Q; 
+  auto dQ = [=] (std::vector<State> vecStates) {
+    std::vector<State> vecFind; 
+    for(int i = 0; i < (int)vecStates.size(); i++) {
+      if(nQ(vecStates[i])) {
+        for(int j = 0; j <(int)vecFind.size(); j++) 
+          if(vecStates[i] == vecFind[j])
+            return false;
+        vecFind.push_back(vecStates[i]); 
+      }
+      else 
+        return false; 
+    }
+    return true; 
+  };
+  auto nD = n.D; 
+  auto epsilon = [=] (std::vector<State> vec) {
+    bool change = true; 
+    while(change) {
+      change = false; 
+      for(int i = 0; i < (int)vec.size(); i++) {
+        std::vector<State> temp = nD(vec[i], -1);
+        for (int j = 0; j < (int)temp.size(); j++) 
+          if (std::find(vec.begin(), vec.end(), temp[j]) == vec.end()) {
+            change = true; 
+            vec.push_back(temp[j]);
+          }
+      }
+    }
+    return vec; 
+  };
+  std::vector<State> startSt = {n.q0};
+  startSt = epsilon(startSt);
+  
+  auto nF = n.F;
+  auto dF = [=] (std::vector<State> vec) {
+    for (int i = 0; i < (int)vec.size(); i++) 
+      if (nF(vec[i]))
+        return true;
+    return false; 
+  };
+  auto dD = [=](std::vector<State> vec, int c) {
+    std::vector<State> check;
+    for(int i = 0; i < (int)vec.size(); i++) {
+      std::vector<State> temp = nD(vec[i], c);
+      check.insert(check.end(), temp.begin(), temp.end());
+    }
+    for(int i = 0; i < (int)check.size(); i++)
+      for(int j = 0; j < (int)check.size(); j++)
+        if(check[i] == check[j] && i != j)
+          check.erase(check.begin() + j);
+    return epsilon(check);
+  };
+  DFA<std::vector<State>> newDFA(dQ, startSt, dD, dF);
+  return newDFA;
+}
 
 int main(int argc, const char * argv[]) {
   /* Task 1 - An alphabet is a finite set of numbers from 0 to some number N. I will use numbers 0 to 9.
@@ -1233,6 +1290,35 @@ int main(int argc, const char * argv[]) {
   else fail++;
   std::cout << pass << " tests passed\n";
   std::cout << fail << " tests failed\n"; 
+  
+  /* Task 39 - Testing NFAs converted to DFAs using the accepts function */ 
+  int passed; 
+  if(accepts(convertNfa(*bk127), {1,0,1,1,1})) 
+    passed++;
+  if(accepts(convertNfa(*bk131), {1,0,1,0}))
+    passed++;
+  if(accepts(convertNfa(*bk136), {2,1,2,1}))
+    passed++; 
+  if(accepts(convertNfa(*zerOne), {0,1,0}))
+    passed++; 
+  if(accepts(convertNfa(*oneOne), {0,0,1,1}))
+    passed++;
+  if(accepts(convertNfa(*zerZero), {1,1,0,0,0}))
+    passed++;
+  if(accepts(convertNfa(*seclast1), {1,1,0,1,0}))
+    passed++;
+  if(accepts(convertNfa(*seclast0), {0,0,1,0,1}))
+    passed++;
+  if(accepts(convertNfa(*nfa_x), {1,0}))
+    passed++;
+  if(accepts(convertNfa(*seven7), {1,7,7,5}))
+    passed++;
+  if(accepts(convertNfa(*endOne), {0,1,1,1}))
+    passed++;
+  if(accepts(convertNfa(*endFive), {2,5,6,5}))
+    passed++;
+  std::cout << "Testing NFA to DFA conversion: \n";
+  std::cout << passed << " tests passed\n";  
 
   return 0; 
 }
