@@ -1291,6 +1291,13 @@ int main(int argc, const char * argv[]) {
   std::cout << pass << " tests passed\n";
   std::cout << fail << " tests failed\n"; 
   
+   /* Task 37 - Write a dozen tests for your Kleene star function. */
+  if(backtracking(klnStar(*oneOne), {1,1})) 
+    std::cout << "Kleen Accepted\n"; 
+  else  
+    std::cout << "Kleen Rejected\n"; 
+  std::cout << std::endl; 
+
   /* Task 39 - Testing NFAs converted to DFAs using the accepts function */ 
   int passed; 
   if(accepts(convertNfa(*bk127), {1,0,1,1,1})) 
@@ -1319,7 +1326,85 @@ int main(int argc, const char * argv[]) {
     passed++;
   std::cout << "Testing NFA to DFA conversion: \n";
   std::cout << passed << " tests passed\n";  
+  std::cout << std::endl; 
 
+  /* Task 40 - Manually convert a few NFAs to DFAs and verify the output
+  of your compiler with your DFA equality function. */
+
+  // NFA #7 converted to DFA
+  DFA<int> *secLast1 = new DFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3) || (x == 4); },
+    1,
+    [](int qi, int c) { 
+      if(qi == 1 && c == 0) return 1; 
+      if(qi == 1 && c == 1) return 2; 
+      if(qi == 2 && c == 1) return 3; 
+      if(qi == 2 && c == 0) return 4;
+      if(qi == 3 && c == 1) return 3;
+      if(qi == 3 && c == 1) return 4;
+      if(qi == 4 && c == 1) return 2;
+      else return 1; 
+    },
+    [](int qi) { return qi == 3 || qi == 4; } 
+  );
+
+  // NFA #8 converted to DFA
+  DFA<int> *secLast0 = new DFA<int> (
+    [](int x) { return (x == 1) || (x == 2) || (x == 3) || (x == 4); },
+    1,
+    [](int qi, int c) { 
+      if(qi == 1 && c == 1) return 1; 
+      if(qi == 1 && c == 0) return 2; 
+      if(qi == 2 && c == 0) return 3; 
+      if(qi == 2 && c == 1) return 4;
+      if(qi == 3 && c == 0) return 3;
+      if(qi == 3 && c == 0) return 4;
+      if(qi == 4 && c == 0) return 2;
+      else return 1; 
+    },
+    [](int qi) { return qi == 3 || qi == 4; } 
+  );
+  int passedDfa; 
+  if(accepts(*secLast1, {0,1,0})) 
+    passedDfa++; 
+  if(accepts(*secLast0, {1,0,1})) 
+    passedDfa++; 
+  std::cout << "Testing Manually Converted NFAs: \n"; 
+  std::cout << passedDfa << " tests passed\n"; 
+  std::cout << "Equality Function Test: \n";
+  if(equals(*secLast1, *secLast0, {0,1}))
+    std::cout << "Strings accepted by both DFAs\n";
+  else 
+    std::cout << "Strings not accepted by both DFAs\n";  
+  std::cout << std::endl; 
+  
+  /* Task 43 - Write a dozen example regular expressions. */
+  std::cout << "Testing Regular Expressions\n"; 
+  regex re1("epsilon");
+  regex re2("character", "4"); 
+  regex re3("union", std::vector<regex>{re1, re2});
+  regex re4("union", std::vector<regex>{regex("character", "1"), regex("character", "0")}); 
+  regex re5("star", std::vector<regex>{re2}); 
+  regex re6("union", std::vector<regex>{re4, re2}); 
+  regex re7("circ", std::vector<regex>{regex("character", "6"), regex("character", "7")});
+  regex re8("union", std::vector<regex>{re3, re5}); 
+  regex re9("circ", std::vector<regex>{re7, re3}); 
+  regex re10("union", std::vector<regex>{re7, regex("character", "9")});
+  regex re11("union", std::vector<regex>{re9, re5}); 
+  regex re12("circ", std::vector<regex>{re1, re10});   
+  std::cout << re1.printRegex(re1) << std::endl; 
+  std::cout << re2.printRegex(re2) << std::endl; 
+  std::cout << re3.printRegex(re3) << std::endl;
+  std::cout << re4.printRegex(re4) << std::endl;
+  std::cout << re5.printRegex(re5) << std::endl;
+  std::cout << re6.printRegex(re6) << std::endl; 
+  std::cout << re7.printRegex(re7) << std::endl;  
+  std::cout << re8.printRegex(re8) << std::endl;
+  std::cout << re9.printRegex(re9) << std::endl; 
+  std::cout << re10.printRegex(re10) << std::endl;
+  std::cout << re12.printRegex(re12) << std::endl; 
+  std::cout << re11.printRegex(re11) << std::endl; 
+  
   return 0; 
 }
     
