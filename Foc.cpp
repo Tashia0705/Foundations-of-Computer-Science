@@ -7,6 +7,7 @@
 #include <list>
 #include <string>  
 #include <random> 
+#include <sstream>
 
 std::vector<int> lexi(std::vector<int> &alph, int N, std::vector<int> &result);
 template<typename State>
@@ -332,13 +333,14 @@ bool backtracking(NFA<State> n, std::vector<int> w) {
         std::pair<State, std::vector<State>> found(i,wprime);  
         if(find(visited.begin(), visited.end(), found) == visited.end()) {
           pending.push_back(found);
-          visited.push_back(found);  
+          visited.push_back(found); 
         }
       }
     }
   }
-return false; 
+  return false; 
 } 
+
 
 /* Task 33 - Write a function that takes two NFAs and returns a third
 NFA that accepts a string if either argument accepts it. */ 
@@ -530,10 +532,64 @@ DFA<std::vector<State>> convertNfa(NFA<State> n) {
   return newDFA;
 }
 
-/* Task 46 - Write a compiler from regular expressions to NFAs. */ 
+/* Task 46 - Write a compiler from regular expressions to NFAs */
 template <typename State> 
-NFA<State> (regex r) {
+NFA<State> compiler(regex r) { 
+  if(r.type == "empty") {
+    NFA<int> *empty = new NFA<int>(
+    [](int x) { return (x == 0); }, 0,
+    [](State qi, int c) { 
+      std::vector<int> vec; 
+      vec.push_back(0);
+      return vec; },
+    [](State qi) { return qi == 1; }
+    );
+    return *empty; 
+  }
+  else if(r.type == "epsilon") {
+    NFA<int> *epsilon = new NFA<int>(
+    [](int x) { return (x == 0) || (x == 1); }, 0,
+    [](State qi, int c) { 
+      std::vector<int> vec; 
+      if(c == -1) vec.push_back(0); 
+      else vec.push_back(1);
+      return vec; },
+    [](State qi) { return qi == 0; }
+    );
+    return *epsilon; 
+  }
+  else if(r.type == "character") {
+    NFA<int> *Char = new NFA<int>(
+    [](int x) { return (x == 0) || (x == 1) || (x == 2) || (x == 3) || (x == 4); }, 0,
+    [=](State qi, int c) { 
+      std::vector<int> vec;  
+      std::stringstream num(r.ch); 
+      int x;
+      num >> x; 
+      if(c == x) vec.push_back(1);
+      if(qi == 2 && c == x) vec.push_back(2); 
+      return vec; },
+    [](State qi) { return qi == 1; }
+    );
+    return *Char; 
+  }
+  /* 
+  else if(r.type == "union") 
+    return nUnion(compiler<int>(r.vec[0]),compiler<int>(r.vec[1])); 
+
+  else if(r.type == "star") 
+    return klnStar(compiler<int>(r.vec[0])); 
+
+  return concatination(compiler<int>(r.vec[0]),compiler<int>(r.vec[1])); */ 
+  NFA<int> newNFA(0,0,0,0); 
+  return newNFA; 
 }
+
+/* Task 48 - Write an equality checker for regular expressions. */
+template <typename T1, typename T2> 
+bool regexEquality(regex re1, regex re2, std::vector<int> alph) {
+  return equals(convertNfa(compiler<T1>(re1)), convertNfa(compiler<T2>(re2)),alph); 
+} 
 
 int main(int argc, const char * argv[]) {
   /* Task 1 - An alphabet is a finite set of numbers from 0 to some number N. I will use numbers 0 to 9.
@@ -897,11 +953,22 @@ int main(int argc, const char * argv[]) {
   else false_++;  
 
   /* Task 37 - Write a dozen tests for your Kleene star function. */
-  if(backtracking(klnStar(*oneOne), {0,1,1,0,1,1})) 
-    std::cout << "Kleen Accepted\n"; 
-  else  
-    std::cout << "Kleen Rejected\n"; 
-  std::cout << std::endl; 
+  int pass;
+  std::cout << "Testing Kleene Star Function: \n";  
+  if(backtracking(klnStar(*bk127), {1,0,1,1,0,1})) pass++;  
+  if(backtracking(klnStar(*bk131), {1,0,1,0})) pass++;
+  if(backtracking(klnStar(*bk136), {2,1,2,1})) pass++;
+  if(backtracking(klnStar(*zerOne), {0,1,0,1})) pass++; 
+  if(backtracking(klnStar(*oneOne), {1,1})) pass++; 
+  if(backtracking(klnStar(*zerZero), {0,0})) pass++; 
+  if(backtracking(klnStar(*seclast1), {0,1,0})) pass++; 
+  if(backtracking(klnStar(*seclast0), {1,0,1})) pass++; 
+  if(backtracking(klnStar(*nfa_x), {1,0,1})) pass++; 
+  if(backtracking(klnStar(*seven7), {0,7,7,0})) pass++; 
+  if(backtracking(klnStar(*endOne), {1,0,0,1})) pass++;  
+  if(backtracking(klnStar(*endFive), {0,5,5})) pass++; 
+
+  std::cout << pass << " tests passed\n";
 
   /* Task 39 - Testing NFAs converted to DFAs using the accepts function */ 
   int passed; 
@@ -929,7 +996,7 @@ int main(int argc, const char * argv[]) {
     passed++;
   if(accepts(convertNfa(*endFive), {2,5,6,5}))
     passed++;
-  std::cout << "Testing NFA to DFA conversion: \n";
+  std::cout << "\nTesting NFA to DFA conversion: \n";
   std::cout << passed << " tests passed\n";  
   std::cout << std::endl; 
 
@@ -1029,6 +1096,10 @@ int main(int argc, const char * argv[]) {
   std::cout << "Regex 2: " << re2.generate() << std::endl;
   std::cout << "Regex 4: " << re4.generate() << std::endl;   
   
+  /* Task 47 - Verify that your regular expression compiler works by using DFA equality testing */
+  
+  if(backtracking(compiler<int>(re2), {4})) std::cout << "works \n"; 
+  else std::cout << "didn't work \n";  
   return 0; 
 }
     
