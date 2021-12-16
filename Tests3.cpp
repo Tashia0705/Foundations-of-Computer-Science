@@ -517,3 +517,30 @@
   else fail++;
   std::cout << pass << " tests passed\n";
   std::cout << fail << " tests failed\n"; 
+
+/* Task 32 - Function that given an NFA and a string, determines if the string is accepted. */
+template<typename State> 
+bool backtracking(NFA<State> n, std::vector<int> w) {
+  return btHelper(n, w, n.q0); 
+}
+template<typename State> 
+bool btHelper(NFA<State> n, std::vector<int> w, State qi) {
+  std::vector<State> epsilon = n.D(qi, -1);
+  for(auto i : epsilon) {
+    if(btHelper(n, w, i)) 
+      return true; 
+  }
+  if(!w.empty()) {
+    int c = w[0];
+    std::vector<State> ch = n.D(qi,c); 
+    w.erase(w.begin()); 
+    for(auto i : ch) {
+      if(btHelper(n,w,i))
+      return true; 
+    }
+  }
+  else
+    return n.F(qi); 
+  return false;  
+}
+
