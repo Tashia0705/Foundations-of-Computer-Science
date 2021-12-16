@@ -564,7 +564,7 @@ NFA<State> compiler(regex r) {
     [=](State qi, int c) { 
       std::vector<int> vec;  
       std::stringstream num(r.ch); 
-      int x;
+      int x; 
       num >> x; 
       if(c == x) vec.push_back(1);
       if(qi == 2 && c == x) vec.push_back(2); 
@@ -573,14 +573,13 @@ NFA<State> compiler(regex r) {
     );
     return *Char; 
   }
-  /* 
   else if(r.type == "union") 
     return nUnion(compiler<int>(r.vec[0]),compiler<int>(r.vec[1])); 
 
   else if(r.type == "star") 
     return klnStar(compiler<int>(r.vec[0])); 
 
-  return concatination(compiler<int>(r.vec[0]),compiler<int>(r.vec[1])); */ 
+  return concatination(compiler<int>(r.vec[0]),compiler<int>(r.vec[1])); 
   NFA<int> newNFA(0,0,0,0); 
   return newNFA; 
 }
@@ -1097,9 +1096,14 @@ int main(int argc, const char * argv[]) {
   std::cout << "Regex 4: " << re4.generate() << std::endl;   
   
   /* Task 47 - Verify that your regular expression compiler works by using DFA equality testing */
-  
-  if(backtracking(compiler<int>(re2), {4})) std::cout << "works \n"; 
-  else std::cout << "didn't work \n";  
+  std::cout << "\nTesting Regex Compiler using DFA Equality Function: \n";  
+  regex re13("character", "5");
+  if(equals(convertNfa(compiler<int>(re2)), convertNfa(compiler<int>(re13)), {0,1})) 
+    std::cout << "String accepted by both DFAs\n";
+  else 
+    std::cout << "String not accepted by both DFAs\n";  
+  if(accepts(convertNfa(compiler<int>(re2)), {4})) std::cout << "Conversion 1 works\n";
+  if(accepts(convertNfa(compiler<int>(re1)), {-1})) std::cout << "Conversion 2 works\n"; 
   return 0; 
 }
     
@@ -1141,3 +1145,4 @@ DFA<int> task7(int ch) {
     [](int qi) { return qi == 1; } );
     return *z;
 }
+
